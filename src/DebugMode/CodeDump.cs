@@ -184,3 +184,30 @@
             }
 
         }
+
+
+        public static void DumpFields(object o, int currentDepth = 0, int maxDepth = 3)
+        {
+
+            // incorrect reflector
+            var fields = AccessTools.GetDeclaredFields(o.GetType());
+
+            log.LogInfo($"{new string(' ', currentDepth * 2)}{o}");
+            foreach (var f in fields)
+            {
+                try
+                {
+                    var val = f.IsStatic ? f.GetValue(null) : f.GetValue(o);
+                    log.LogInfo($"{new string(' ', currentDepth * 2)}{f.Name}: {val}");
+                    if (f.FieldType is object && currentDepth < maxDepth)
+                    {
+                        DumpFields(val, currentDepth, maxDepth);
+                    }
+                }
+                catch (Exception)
+                {
+                    log.LogWarning($"{new string(' ', currentDepth * 2)}Exception on {f.Name}");
+                    continue;
+                }
+            }
+        }

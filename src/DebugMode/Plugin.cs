@@ -127,7 +127,7 @@ namespace DebugMode
     public class Plugin : BaseUnityPlugin
     {
         public const string GUID = "neo.lbol.debugMode";
-        public const string version = "0.5.0";
+        public const string version = "0.7.0";
 
         private static readonly Harmony harmony = new Harmony(GUID);
 
@@ -197,51 +197,98 @@ namespace DebugMode
         public static UnityEngine.Events.UnityAction CoroutineWrapper(IEnumerator routine)
         {
             return delegate {
-                var gr = GameMaster.Instance;
-                if (gr == null)
+                var gm = GameMaster.Instance;
+                if (gm == null)
                     throw new InvalidOperationException("GameMaster is null");
-                gr.StartCoroutine(routine);
+                gm.StartCoroutine(routine);
             };
         }
 
 
-        public static void DumpFields(object o, int currentDepth = 0, int maxDepth = 3)
+        public class Rewards_ExtraProps
         {
-            var fields = AccessTools.GetDeclaredFields(o.GetType());
-
-            log.LogInfo($"{new string(' ', currentDepth*2)}{o}");
-            foreach (var f in fields) 
-            {
-                try
-                {
-                    var val = f.IsStatic ? f.GetValue(null) : f.GetValue(o);
-                    log.LogInfo($"{new string(' ', currentDepth * 2)}{f.Name}: {val}");
-                    if (f.FieldType is object && currentDepth < maxDepth)
-                    {
-                        DumpFields(val, currentDepth, maxDepth);
-                    }
-                }
-                catch (Exception)
-                {
-                    log.LogWarning($"{new string(' ', currentDepth * 2)}Exception on {f.Name}");
-                    continue;
-                }
-            }
+            public bool lotsOfExhibits = false;
         }
 
+        static public ConditionalWeakTable<RewardInteraction, Rewards_ExtraProps> wt_RewardInteraction = new ConditionalWeakTable<RewardInteraction, Rewards_ExtraProps>();
+
+        static public ConditionalWeakTable<ShowRewardContent, Rewards_ExtraProps> wt_ShowRewardContent = new ConditionalWeakTable<ShowRewardContent, Rewards_ExtraProps>();
 
 
 
 
-        [HarmonyPatch(typeof(SelectDebugPanel), nameof(SelectDebugPanel.CreateAdventureButtons))]
+        [HarmonyPatch(typeof(SelectDebugPanel))]
         class SelectDebugPanel_Patch
         {
-            static void Postfix(SelectDebugPanel __instance)
-            {
 
-                CreateButton(__instance, "Gimme Commons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyCommon))));
-                CreateButton(__instance, "Gimme Uncommons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyUncommon))));
-                CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
+
+
+            static HashSet<Type> cEx = new HashSet<Type>();
+            static HashSet<Type> uEx = new HashSet<Type>();
+            static HashSet<Type> rEx = new HashSet<Type>();
+            static HashSet<Type> mEx = new HashSet<Type>();
+            static HashSet<Type> sEx = new HashSet<Type>();
+
+
+            [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
+            [HarmonyPostfix]
+            static void Awake_Postfix()
+            {
+                foreach (var tc in Library.EnumerateExhibitTypes().OrderByDescending(tc => tc.config.Index))
+                {
+                    switch (tc.config.Rarity)
+                    {
+                        case Rarity.Common:
+                            cEx.Add(tc.exhibitType);
+                            break;
+                        case Rarity.Uncommon:
+                            uEx.Add(tc.exhibitType);
+                            break;
+                        case Rarity.Rare:
+                            rEx.Add(tc.exhibitType);
+                            break;
+                        case Rarity.Mythic:
+                            mEx.Add(tc.exhibitType);
+                            break;
+                        case Rarity.Shining:
+                            sEx.Add(tc.exhibitType);
+                            break;
+                        default:
+                            log.LogWarning($"Exhibit {tc.exhibitType.Name} doesn't have a rarity");
+                            break;
+                    }
+                }
+            }
+
+
+
+            [HarmonyPatch(nameof(SelectDebugPanel.CreateEnemyButtons))]
+            [HarmonyPostfix]
+            static void CreateEnemyButtons_Postfix(SelectDebugPanel __instance)
+            {
+                // panel with the most space
+                if (__instance._selectionType == SelectDebugPanel.SelectionType.RealName)
+                {
+                    CreateButton(__instance, "Gimme Commons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyCommon))));
+                    CreateButton(__instance, "Gimme Uncommons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyUncommon))));
+                    CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
+
+                    CreateButton(__instance, "Gimme other cards", CoroutineWrapper(
+                        PoolCards(new CardWeightTable(RarityWeightTable.AllOnes, OwnerWeightTable.Valid, 
+                        CardTypeWeightTable.OnlyMisfortune
+                        //new CardTypeWeightTable(0f, 0f, 0f, 0f, 1f, 1f, 0f)
+                        ), 
+                        false)));
+
+
+                    CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(cEx)));
+                    CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(uEx)));
+                    CreateButton(__instance, "Gimme Rare Exhibits", CoroutineWrapper(PoolExhibits(rEx)));
+                    CreateButton(__instance, "Gimme Mythics", CoroutineWrapper(PoolExhibits(mEx)));
+                    CreateButton(__instance, "Gimme Shinnies", CoroutineWrapper(PoolExhibits(sEx)));
+
+                }
+
             }
 
 
@@ -258,8 +305,8 @@ namespace DebugMode
                 // reset to make button clickable again
                 button.onClick.AddListener(delegate
                 {
-                    debugPanel.SelectRealName();
                     debugPanel.SelectAdventure();
+                    debugPanel.SelectRealName();
                 });
                 
                 button.gameObject.SetActive(true);
@@ -267,17 +314,38 @@ namespace DebugMode
             }
 
 
+            public static IEnumerator PoolExhibits(HashSet<Type> exhibits)
+            {
+                var gr = GameMaster.Instance.CurrentGameRun;
+
+                foreach (var ex in gr.Player.Exhibits)
+                {
+                    exhibits.Remove(ex.GetType());
+                }
+
+                var list = exhibits.Select(t => Library.CreateExhibit(t));
+
+
+                var rewardInteraction = new RewardInteraction(list)
+                {
+                    CanCancel = true,
+                };
+
+                wt_RewardInteraction.Add(rewardInteraction, new Rewards_ExtraProps() { lotsOfExhibits = true });
+
+                yield return gr.InteractionViewer.View(rewardInteraction);
+                
+                
+            }
 
 
 
-
-            public static IEnumerator PoolCards(CardWeightTable cardWeightTable)
+            public static IEnumerator PoolCards(CardWeightTable cardWeightTable, bool colorLimit = true)
             {
 
                 var gr = GameMaster.Instance.CurrentGameRun;
 
-
-                var cards = GameMaster.Instance.CurrentGameRun.CreateValidCardsPool(cardWeightTable, new ManaGroup?(gr.BaseMana), false, true)
+                var cards = GameMaster.Instance.CurrentGameRun.CreateValidCardsPool(cardWeightTable, new ManaGroup?(gr.BaseMana), colorLimit, true)
                     .SelectMany( rpe => new Card[] { Library.CreateCard(rpe.Elem), Library.CreateCard(rpe.Elem) });
 
 
@@ -289,10 +357,9 @@ namespace DebugMode
                 cards.Where((c, i) => i % 2 == 1 && c.CanUpgradeAndPositive).Do(c => c.Upgrade());
 
 
-
                 SelectCardInteraction interaction = new SelectCardInteraction(0, cards.Count(), cards, SelectedCardHandling.DoNothing)
                 {
-                    CanCancel = false,
+                    CanCancel = true,
                     Description = "Pick any number of cards"
                 };
 
@@ -308,8 +375,136 @@ namespace DebugMode
         }
 
 
+        [HarmonyPatch]
+        class RewardPanel_ViewReward_Patch
+        {
+
+            static Type innerEnumType;
+
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                innerEnumType = typeof(RewardPanel).GetNestedTypes(AccessTools.allDeclared).Where(t => t.Name.Contains("ViewReward")).Single();
+                yield return AccessTools.Method(innerEnumType, "MoveNext");
+            }
 
 
+            static ShowRewardContent AttachProperty(ShowRewardContent target, RewardInteraction source)
+            {
+                if (wt_RewardInteraction.TryGetValue(source, out Rewards_ExtraProps ep))
+                {
+                    wt_ShowRewardContent.Add(target, ep);
+                }
+                return target;
+            }
+
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                foreach (var ci in instructions)
+                {
+                    if (ci.Is(OpCodes.Newobj, AccessTools.Constructor(typeof(ShowRewardContent))))
+                    {
+                        yield return ci;
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(innerEnumType, "interaction"));
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RewardPanel_ViewReward_Patch), 
+                            nameof(RewardPanel_ViewReward_Patch.AttachProperty)));
+                    }
+                    else
+                    {
+                        yield return ci;
+                    }
+                }
+            }
+
+                
+        }
+
+
+        [HarmonyPatch(typeof(RewardPanel), nameof(RewardPanel.OnShowing))]
+        class RewardPanel_OnShowing_Patch
+        {
+
+            static public float newWidgetScale = 0.4f;
+
+            static public float topShift = 500f;
+
+            static public float widgetWidth = 270f;
+
+            static public float rowHeight = 420f;
+
+            static public int rowCount = 14;
+
+            static void Postfix(RewardPanel __instance, ShowRewardContent showRewardContent)
+            {
+
+
+                if (wt_ShowRewardContent.TryGetValue(showRewardContent, out Rewards_ExtraProps ep))
+                {
+                    if (ep.lotsOfExhibits)
+                    {
+
+                        var rewards = __instance.rewardLayout.GetComponentsInChildren<RewardWidget>();
+
+                        
+                        var i = 0; 
+                        var rows = 0;
+
+                        var anchorXcoord = -1750;
+                        foreach (var r in rewards)
+                        {
+                            r.transform.transform.localScale = new Vector3(newWidgetScale, newWidgetScale, newWidgetScale);
+                            r.transform.localPosition += new Vector3(0f, topShift-(rows*rowHeight));
+
+                            r.transform.localPosition = new Vector3(anchorXcoord + (widgetWidth * i), r.transform.localPosition.y, r.transform.localPosition.z);
+
+                            i++;
+                            if (i % rowCount == 0)
+                            {
+                                rows++;
+                                i = 0;
+                            }
+                        }
+
+
+                    }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RewardPanel), nameof(RewardPanel.ResetAllPositions))]
+        class ResetAllPositions_Patch
+        {
+
+            static bool Prefix(RewardPanel __instance, bool approaching)
+            {
+                if (__instance._rewardWidgets.Count > 0)
+                {
+                    // lazy way to skip widget position reset on picking exhibit
+                    if (__instance._rewardWidgets[0].transform.localScale == Vector3.one * RewardPanel_OnShowing_Patch.newWidgetScale)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(HuiyeBaoxiang), nameof(HuiyeBaoxiang.SpecialGain))]
+        class HuiyeBaoxiang_Patch
+        {
+            static void Prefix()
+            {
+                var rewardPanel = UiManager.GetPanel<RewardPanel>();
+                if(rewardPanel.IsVisible)
+                {
+                    rewardPanel.Hide();
+                }
+            }
+
+        }
 
 
 
