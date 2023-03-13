@@ -221,18 +221,18 @@ namespace DebugMode
         class SelectDebugPanel_Patch
         {
 
-
-
             static HashSet<Type> cEx = new HashSet<Type>();
             static HashSet<Type> uEx = new HashSet<Type>();
             static HashSet<Type> rEx = new HashSet<Type>();
             static HashSet<Type> mEx = new HashSet<Type>();
             static HashSet<Type> sEx = new HashSet<Type>();
 
+            static HashSet<Type> theRest = new HashSet<Type>();
+
 
             [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
             [HarmonyPostfix]
-            static void Awake_Postfix()
+            static void OnShowing_Postfix()
             {
                 foreach (var tc in Library.EnumerateExhibitTypes().OrderByDescending(tc => tc.config.Index))
                 {
@@ -258,8 +258,13 @@ namespace DebugMode
                             break;
                     }
                 }
-            }
 
+                Library.EnumerateCardTypes().Where(tc => tc.config.Type == 
+                CardType.Misfortune || tc.config.Type == CardType.Status || tc.config.Type == CardType.Unknown
+                //|| !tc.config.IsPooled
+                ).
+                Select(tc => tc.cardType).Do(t => theRest.Add(t));
+            }
 
 
             [HarmonyPatch(nameof(SelectDebugPanel.CreateEnemyButtons))]
@@ -269,17 +274,20 @@ namespace DebugMode
                 // panel with the most space
                 if (__instance._selectionType == SelectDebugPanel.SelectionType.RealName)
                 {
+
                     CreateButton(__instance, "Gimme Commons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyCommon))));
                     CreateButton(__instance, "Gimme Uncommons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyUncommon))));
                     CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
 
-                    CreateButton(__instance, "Gimme other cards", CoroutineWrapper(
+                    CreateButton(__instance, "Gimme the rest", CoroutineWrapper(
                         PoolCards(new CardWeightTable(RarityWeightTable.AllOnes, OwnerWeightTable.Valid, 
-                        CardTypeWeightTable.OnlyMisfortune
-                        //new CardTypeWeightTable(0f, 0f, 0f, 0f, 1f, 1f, 0f)
+                        new CardTypeWeightTable(0f, 0f, 0f, 0f, 1f, 0f, 0f)
                         ), 
-                        false)));
+                        false,
+                        theRest)));
 
+
+                    
 
                     CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(cEx)));
                     CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(uEx)));
@@ -328,7 +336,7 @@ namespace DebugMode
 
                 var rewardInteraction = new RewardInteraction(list)
                 {
-                    CanCancel = true,
+                    CanCancel = false,
                 };
 
                 wt_RewardInteraction.Add(rewardInteraction, new Rewards_ExtraProps() { lotsOfExhibits = true });
@@ -340,7 +348,7 @@ namespace DebugMode
 
 
 
-            public static IEnumerator PoolCards(CardWeightTable cardWeightTable, bool colorLimit = true)
+            public static IEnumerator PoolCards(CardWeightTable cardWeightTable, bool colorLimit = true, IEnumerable<Type> additionalCards = null)
             {
 
                 var gr = GameMaster.Instance.CurrentGameRun;
@@ -349,17 +357,25 @@ namespace DebugMode
                     .SelectMany( rpe => new Card[] { Library.CreateCard(rpe.Elem), Library.CreateCard(rpe.Elem) });
 
 
+                if (additionalCards != null)
+                {
+                    cards = cards.Concat(additionalCards.Select(t => Library.CreateCard(t)));
+                }
+
+
                 // modded cards will probably have highest index and tools appear last
                 cards = cards.OrderBy(c => c.CardType).ThenByDescending(c => c.Config.Index).ToList();
 
+                cards.Where((c, i) => i % 2 == 1 && c.CanUpgradeAndPositive).Do(c => c.Upgrade());
+
                 cards.Do(c => c.GameRun = gr);
 
-                cards.Where((c, i) => i % 2 == 1 && c.CanUpgradeAndPositive).Do(c => c.Upgrade());
+                
 
 
                 SelectCardInteraction interaction = new SelectCardInteraction(0, cards.Count(), cards, SelectedCardHandling.DoNothing)
                 {
-                    CanCancel = true,
+                    CanCancel = false,
                     Description = "Pick any number of cards"
                 };
 
@@ -433,6 +449,8 @@ namespace DebugMode
 
             static public float rowHeight = 420f;
 
+            static public float anchorXcoord = -1750f;
+
             static public int rowCount = 14;
 
             static void Postfix(RewardPanel __instance, ShowRewardContent showRewardContent)
@@ -443,14 +461,11 @@ namespace DebugMode
                 {
                     if (ep.lotsOfExhibits)
                     {
-
                         var rewards = __instance.rewardLayout.GetComponentsInChildren<RewardWidget>();
-
                         
                         var i = 0; 
                         var rows = 0;
 
-                        var anchorXcoord = -1750;
                         foreach (var r in rewards)
                         {
                             r.transform.transform.localScale = new Vector3(newWidgetScale, newWidgetScale, newWidgetScale);
