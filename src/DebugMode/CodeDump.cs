@@ -137,9 +137,35 @@
 
 
 
+            // out card config
+			using (FileStream fileStream = File.Open("DEEZNUTS.txt", FileMode.Open, FileAccess.Write, FileShare.None))
+			{
+				using (StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
+				{
+					foreach (var cc in CardConfig.AllConfig())
+					{
+						streamWriter.WriteLine(cc);
+
+						streamWriter.WriteLine("------------------------");
+					}
+				}
+			}
 
 
 
+            // out card config
+			using (FileStream fileStream = File.Open("readableConfig.txt", FileMode.Create, FileAccess.Write, FileShare.None))
+			{
+				using (StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
+				{
+					foreach (var cc in CardConfig.AllConfig())
+					{
+						streamWriter.WriteLine(cc);
+
+						streamWriter.WriteLine("------------------------");
+					}
+				}
+			}
 
 
 
@@ -210,4 +236,71 @@
                     continue;
                 }
             }
+        }
+		
+		
+		CardConfig.AllConfig().Where(c => c.Owner == "Reimu" && c.Rarity == Rarity.Rare).ToList().ForEach(c => Plugin.SaveTexture2D(c.Id, ResourcesHelper.CardImages[c.Id]))
+		
+		
+        static KeyboardShortcut testTextureKey = new KeyboardShortcut(KeyCode.H);
+
+        void Update()
+        {
+            if (testTextureKey.IsDown())
+            {
+                //SuikaBigball
+                (ResourcesHelper.CardImages["TemporalGuardian"] as Texture2D).EncodeToPNG();
+
+                var tg = "TemporalGuardian";
+
+                tg = "SuikaBigball";
+
+                SaveTexture2D(tg, ResourcesHelper.CardImages[tg]);
+            }
+        }
+
+
+
+        public static Texture2D duplicateTexture(Texture2D source)
+        {
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                        source.width,
+                        source.height,
+                        0,
+                        RenderTextureFormat.Default,
+                        RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(source, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
+            Texture2D readableText = new Texture2D(source.width, source.height);
+            readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+            readableText.Apply();
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(renderTex);
+            return readableText;
+        }
+
+        public static void SaveTexture2D(string name, Texture tex)
+        {
+
+            log.LogInfo("deeznuts");
+
+            var tex2d = (Texture2D)tex;
+
+            if (!tex2d.isReadable)
+            {
+                tex2d = duplicateTexture(tex2d);
+            }
+
+
+            var texBytes = tex2d.EncodeToPNG();
+
+            var loc = Path.Combine(Application.dataPath, "exportedTextures");
+            name = name + ".png";
+
+            Directory.CreateDirectory(loc);
+
+            File.WriteAllBytes(Path.Combine(loc, name), texBytes);
+
         }
