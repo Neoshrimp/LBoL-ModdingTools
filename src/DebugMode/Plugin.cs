@@ -176,7 +176,7 @@ namespace DebugMode
                 }
                 else
                 {
-                    log.LogInfo("Run is already started.");
+                    log.LogInfo("Run has already been started.");
                 }
 
             }

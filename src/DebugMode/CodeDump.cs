@@ -152,7 +152,6 @@
 			}
 
 
-
             // out card config
 			using (FileStream fileStream = File.Open("readableConfig.txt", FileMode.Create, FileAccess.Write, FileShare.None))
 			{
@@ -303,4 +302,109 @@
 
             File.WriteAllBytes(Path.Combine(loc, name), texBytes);
 
+        }
+		
+		
+		static void PrintMembers(object obj, int depth = 0 , int maxDepth = 3)
+        {
+            if (depth > maxDepth) return;
+
+            Type type = obj.GetType();
+
+            // Print all fields
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+
+
+                try
+                {
+                    log.LogInfo($"{0}{1} = {depth}" + new string(' ', depth * 2) + field.Name + field.GetValue(obj));
+                    if (field.FieldType.IsClass)
+                    {
+                        object fieldValue = field.GetValue(obj);
+                        if (fieldValue != null)
+                        {
+                            PrintMembers(fieldValue, depth + 1, maxDepth);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+
+            // Print all properties
+            foreach (PropertyInfo prop in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                try
+                {
+                    if (prop.CanRead)
+                    {
+                        log.LogInfo($"{0}{1} = {depth}" + new string(' ', depth * 2) + prop.Name + prop.GetValue(obj));
+                        if (prop.PropertyType.IsClass)
+                        {
+                            object propValue = prop.GetValue(obj);
+                            if (propValue != null)
+                            {
+                                PrintMembers(propValue, depth + 1, maxDepth);
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+        }
+		
+		
+		
+		// check if method names differ
+		static KeyboardShortcut testTextureKey = new KeyboardShortcut(KeyCode.H);
+		
+		class MethodComp : IEqualityComparer<MethodInfo>
+        {
+            public bool Equals(MethodInfo x, MethodInfo y)
+            {
+                return x.Name == y.Name;
+            }
+
+            public int GetHashCode(MethodInfo obj)
+            {
+                return obj.Name.GetHashCode();
+            }
+        }
+		
+        void Update()
+        {
+            if (testTextureKey.IsDown())
+            {
+                //var comp = new EqualityComparer<MethodInfo>((m1, m2) => m1.Name == m2.Name);
+
+                var types = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name.Contains("LBoL.Config")).Single().GetTypes().
+                    Where(t => t.Name.EndsWith("Config"));
+
+                types.Do(t => log.LogInfo(t.Name));
+
+                log.LogInfo($"----{types.Count()}");
+
+
+                types.SelectMany(t => AccessTools.GetDeclaredMethods(t)).Where(m => !m.IsSpecialName && !m.Name.StartsWith("<")).
+                    Do(m => log.LogInfo($"{m.DeclaringType}: {m.Name}"));
+
+                var methods = types.Select(t => AccessTools.GetDeclaredMethods(t).Where(m => !m.IsSpecialName && !m.Name.StartsWith("<")).ToHashSet(new MethodComp()));
+
+                var u = methods.Aggregate((s1, s2) => s1.Union(s2).ToHashSet(new MethodComp()));
+                var v = methods.Aggregate((s1, s2) => s1.Intersect(s2).ToHashSet(new MethodComp()));
+
+                log.LogInfo("----");
+
+                u.Except(v).Do(m => log.LogInfo($"{m.DeclaringType}: {m.Name}"));
+
+                    //Aggregate((s1, s2) => s1.Union(s2, new MethodComp()).Except(s1.Intersect(s2, new MethodComp())).ToHashSet()).
+                    //Do(m => log.LogInfo($"{m.DeclaringType}: {m.Name}"))
+
+            }
         }
