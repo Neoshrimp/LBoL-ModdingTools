@@ -38,7 +38,7 @@ namespace AddWatermark
                 harmony.UnpatchSelf();
         }
 
-        public static GameObject watermarkRef = null;
+        internal static GameObject watermarkRef = null;
 
         internal static bool activateWatermark = false; // false
 
