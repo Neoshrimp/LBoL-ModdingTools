@@ -3,6 +3,8 @@ Modding tools for Lost Branch of Legend
 
 Press F5 in main menu to start a debug run. 
 
+#### [Add watermark](https://github.com/Neoshrimp/LBoL-ModdingTools/tree/master/src/LBoL-AddWatermark)
+
 ---
 
 `LBoL Pugin.zip` is BePinEx plugin template for Visual Studio. Includes assembly publicizer. Adjust `<GameFolder>` property in .csproj file.
