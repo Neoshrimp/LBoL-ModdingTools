@@ -408,3 +408,219 @@
 
             }
         }
+
+
+// register with reflection
+internal void RegisterConfig(EntityDefinition entityDefinition)
+	{
+
+		// this is a bit more complicated
+		var Id = UniquefyId(entityDefinition.Id);
+		log.LogInfo($"{Id},  C:{entityDefinition.GetConfigType()}");
+
+		try
+		{
+			var configType = entityDefinition.GetConfigType();
+
+			var m_FromId = ConfigHelper.GetFromIdMethod(configType);
+
+			var t_getConfig = GeneralHelper.MakeGenericType(typeof(IConfigProvider<>), new Type[]{ entityDefinition.GetConfigType() });
+			var m_getConfig = AccessTools.Method(t_getConfig, nameof(IConfigProvider<object>.GetConfig));
+			var newConfig = m_getConfig.Invoke(entityDefinition, null);
+
+			log.LogDebug(newConfig);
+
+			var config = m_FromId.Invoke(null, new object[] { Id});
+
+			if (config == null)
+			{
+				log.LogInfo($"initial config load for {Id}");
+
+
+
+				//var ref_Data = AccessTools.StaticFieldRefAccess<C[](f_Data);
+				//ref_Data() = ref_Data().AddItem(newConfig).ToArray();
+
+
+				// static method
+				var f_Data = AccessTools.Field(entityDefinition.GetConfigType(), "_data");
+				var m_AddToArray = AccessTools.Method(typeof(HarmonyLib.CollectionExtensions), nameof(HarmonyLib.CollectionExtensions.AddToArray));
+
+				m_AddToArray = m_AddToArray.MakeGenericMethod(new Type[] { configType });
+				m_AddToArray.Invoke(null, new object[] { f_Data.GetValue(null), newConfig });
+
+				var t_ConfigDic = GeneralHelper.MakeGenericType(typeof(Dictionary<,>), new Type[] { typeof(string), configType });
+				var f_IdTable = AccessTools.Field(configType, "_IdTable");
+				var m_dicAdd = AccessTools.Method(t_ConfigDic, nameof(Dictionary<object, object>.Add));
+				m_dicAdd.Invoke(f_IdTable.GetValue(null), new object[] { Id, newConfig });
+
+				//((Dictionary<string, C>)f_IdTable.GetValue(null)).Add(Id, newConfig);
+
+			}
+			else
+			{
+				log.LogInfo($"secondary config reload for {Id}");
+				config = newConfig;
+			}
+
+
+
+		}
+		catch (Exception ex)
+		{
+			log.LogError($"Exception registering {Id}: {ex}");
+
+		}
+	}
+	
+//resourceManager = new ResourceManager(assembly.GetName().Name+ ".Properties.Resources", assembly);
+
+/*            var res = resourceManager.GetResourceSet(CultureInfo.CurrentUICulture, true, true);
+
+			foreach (var r in res)
+			{
+				UnityEngine.Debug.Log(((DictionaryEntry)r).Key);
+			}*/
+
+//return resourceManager.GetStream(id);
+
+    [HarmonyPatch(typeof(GameEvent<DamageEventArgs>), nameof(GameEvent<DamageEventArgs>.Execute))]
+    class Gdeez_Patch
+    {
+
+        static void Prefix(GameEvent<DamageEventArgs> __instance)
+        {
+
+            foreach (KeyValuePair<GameEventPriority, List <GameEvent<DamageEventArgs>.HandlerEntry>> kv in __instance._invocationListDict)
+            {
+                foreach (var h in kv.Value)
+                {
+                    log.LogDebug($"{h.Handler.Target}, {h.Handler.Method}");
+                }
+            
+            }
+        }
+    }
+	
+	
+	    [HarmonyPatch(typeof(GameEvent<DamageEventArgs>), nameof(GameEvent<DamageEventArgs>.Execute))]
+    class Gdeez_Patch
+    {
+
+        static void Deezlog(object o)
+        {
+            log.LogDebug(o);
+        }
+
+
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            int i = 0;
+            var ciList = instructions.ToList();
+            var c = ciList.Count();
+            CodeInstruction prevCi = null;
+            foreach (var ci in instructions)
+            {
+                if (ci.opcode == OpCodes.Callvirt && (MethodInfo)ci.operand == AccessTools.PropertyGetter(typeof(GameEvent<DamageEventArgs>.HandlerEntry), "Handler"))
+                {
+                    log.LogDebug("injected");
+                    yield return ci;
+                    yield return new CodeInstruction(OpCodes.Dup);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Gdeez_Patch), "Deezlog"));
+
+
+
+                }
+                else
+                {
+                    yield return ci;
+                }
+                prevCi = ci;
+                i++;
+            }
+        }
+
+
+
+    }
+	
+	        [HarmonyPatch]
+        class Library_Patch
+        {
+
+
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return ExtraAccess.InnerMoveNext(typeof(Library), nameof(Library.RegisterAllAsync));
+            }
+
+
+            static void LoadModded()
+            {
+                EntityManager.Instance.RegisterUsers();
+
+
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                foreach (var ci in instructions)
+                {
+                    if (ci.Is(OpCodes.Stsfld, AccessTools.Field(typeof(Library), nameof(Library._registered))))
+                    {
+                        log.LogDebug("injected library");
+
+                        yield return ci;
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Library_Patch), nameof(Library_Patch.LoadModded)));
+                    }
+                    else
+                    {
+                        yield return ci;
+                    }
+                }
+            }
+
+
+        }
+
+
+        [HarmonyPatch]
+        class ResourcesHelper_Patch
+        {
+
+
+
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return ExtraAccess.InnerMoveNext(typeof(ResourcesHelper), nameof(ResourcesHelper.InitializeAsync));
+            }
+
+
+            static void LoadModded()
+            { 
+                EntityManager.Instance.AssetsForResourceHelper();
+
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                foreach (var ci in instructions)
+                {
+                    if (ci.Is(OpCodes.Stsfld, AccessTools.Field(typeof(ResourcesHelper), nameof(ResourcesHelper._loaded))))
+                    {
+                        log.LogDebug("injected resouces");
+
+                        yield return ci;
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ResourcesHelper_Patch), nameof(ResourcesHelper_Patch.LoadModded)));
+                    }
+                    else
+                    {
+                        yield return ci;
+                    }
+                }
+            }
+
+
+
+        }
+
