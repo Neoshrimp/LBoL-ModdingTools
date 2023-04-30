@@ -217,41 +217,50 @@ namespace DebugMode
 
 
 
+        internal class TypeCache
+        {
+
+
+            public HashSet<Type> cEx = new HashSet<Type>();
+            public HashSet<Type> uEx = new HashSet<Type>();
+            public HashSet<Type> rEx = new HashSet<Type>();
+            public HashSet<Type> mEx = new HashSet<Type>();
+            public HashSet<Type> sEx = new HashSet<Type>();
+
+            public HashSet<Type> theRest = new HashSet<Type>();
+        }
+
+
         [HarmonyPatch(typeof(SelectDebugPanel))]
         class SelectDebugPanel_Patch
         {
 
-            static HashSet<Type> cEx = new HashSet<Type>();
-            static HashSet<Type> uEx = new HashSet<Type>();
-            static HashSet<Type> rEx = new HashSet<Type>();
-            static HashSet<Type> mEx = new HashSet<Type>();
-            static HashSet<Type> sEx = new HashSet<Type>();
-
-            static HashSet<Type> theRest = new HashSet<Type>();
-
+            static TypeCache typeCache;
 
             [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
             [HarmonyPostfix]
             static void OnShowing_Postfix()
             {
+                // clear cache
+                typeCache = new TypeCache();
                 foreach (var tc in Library.EnumerateExhibitTypes().OrderByDescending(tc => tc.config.Index))
                 {
                     switch (tc.config.Rarity)
                     {
                         case Rarity.Common:
-                            cEx.Add(tc.exhibitType);
+                            typeCache.cEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Uncommon:
-                            uEx.Add(tc.exhibitType);
+                            typeCache.uEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Rare:
-                            rEx.Add(tc.exhibitType);
+                            typeCache.rEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Mythic:
-                            mEx.Add(tc.exhibitType);
+                            typeCache.mEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Shining:
-                            sEx.Add(tc.exhibitType);
+                            typeCache.sEx.Add(tc.exhibitType);
                             break;
                         default:
                             log.LogWarning($"Exhibit {tc.exhibitType.Name} doesn't have a rarity");
@@ -263,7 +272,7 @@ namespace DebugMode
                 CardType.Misfortune || tc.config.Type == CardType.Status || tc.config.Type == CardType.Unknown
                 //|| !tc.config.IsPooled
                 ).
-                Select(tc => tc.cardType).Do(t => theRest.Add(t));
+                Select(tc => tc.cardType).Do(t => typeCache.theRest.Add(t));
             }
 
 
@@ -284,16 +293,21 @@ namespace DebugMode
                         new CardTypeWeightTable(0f, 0f, 0f, 0f, 1f, 0f, 0f)
                         ), 
                         false,
-                        theRest)));
+                        typeCache.theRest)));
 
 
                     
 
-                    CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(cEx)));
-                    CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(uEx)));
-                    CreateButton(__instance, "Gimme Rare Exhibits", CoroutineWrapper(PoolExhibits(rEx)));
-                    CreateButton(__instance, "Gimme Mythics", CoroutineWrapper(PoolExhibits(mEx)));
-                    CreateButton(__instance, "Gimme Shinnies", CoroutineWrapper(PoolExhibits(sEx)));
+                    CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(typeCache.cEx)));
+                    CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(typeCache.uEx)));
+                    CreateButton(__instance, "Gimme Rare Exhibits", CoroutineWrapper(PoolExhibits(typeCache.rEx)));
+                    CreateButton(__instance, "Gimme Mythics", CoroutineWrapper(PoolExhibits(typeCache.mEx)));
+                    CreateButton(__instance, "Gimme Shinnies", CoroutineWrapper(PoolExhibits(typeCache.sEx)));
+
+                    CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
+
+
+                    CreateButton(__instance, "Output All Config", () => { });
 
                 }
 
@@ -320,11 +334,37 @@ namespace DebugMode
                 button.gameObject.SetActive(true);
 
             }
+            public static IEnumerator RemoveCards()
+            {
+
+                var gr = GameMaster.Instance.CurrentGameRun;
+
+                if (gr == null)
+                    yield break;
+
+                List<Card> list = gr.BaseDeck.ToList<Card>();
+                if (list.Count > 0)
+                {
+                    SelectCardInteraction interaction = new SelectCardInteraction(0, list.Count(), list, SelectedCardHandling.DoNothing)
+                    {
+                        CanCancel = true,
+                        Description = "Remove any number of cards"
+                    };
+                    yield return gr.InteractionViewer.View(interaction);
+                    if (!interaction.IsCanceled)
+                    {
+                        gr.RemoveDeckCards(interaction.SelectedCards, true);
+                    }
+                }
+            }
 
 
             public static IEnumerator PoolExhibits(HashSet<Type> exhibits)
             {
                 var gr = GameMaster.Instance.CurrentGameRun;
+
+                if (gr == null)
+                    yield break;
 
                 foreach (var ex in gr.Player.Exhibits)
                 {
@@ -352,6 +392,9 @@ namespace DebugMode
             {
 
                 var gr = GameMaster.Instance.CurrentGameRun;
+
+                if (gr == null)
+                    yield break;
 
                 var cards = GameMaster.Instance.CurrentGameRun.CreateValidCardsPool(cardWeightTable, new ManaGroup?(gr.BaseMana), colorLimit, true)
                     .SelectMany( rpe => new Card[] { Library.CreateCard(rpe.Elem), Library.CreateCard(rpe.Elem) });

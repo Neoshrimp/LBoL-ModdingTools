@@ -23,7 +23,7 @@ namespace SideloaderTemplate
             return null;
         }
 
-        public override LocalizationOption LoadText()
+        public override LocalizationOption LoadLocalization()
         {
             return null;
         }
