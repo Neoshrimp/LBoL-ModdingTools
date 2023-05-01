@@ -75,6 +75,12 @@
     <Reference Include="Unity.TextMeshPro">
         <HintPath>$(GameFolder)\LBoL_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
+    <Reference Include="UniTask">
+        <HintPath>$(GameFolder)\LBoL_Data\Managed\UniTask.dll</HintPath>
+    </Reference>
+    <Reference Include="LBoL-Entity-Sideloader">
+        <HintPath>$(BepInExFolder)\plugins\LBoL-Entity-Sideloader.dll</HintPath>
+    </Reference>
   </ItemGroup>
 	
 

@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using Cysharp.Threading.Tasks;
 using HarmonyLib;
 using LBoL.Base;
 using LBoL.Base.Extensions;
@@ -107,10 +108,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -118,7 +121,10 @@ using Untitled;
 using Untitled.ConfigDataBuilder;
 using Untitled.ConfigDataBuilder.Base;
 using Debug = UnityEngine.Debug;
-
+using LBoLEntitySideloader.ReflectionHelpers;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace DebugMode
 {
@@ -289,14 +295,14 @@ namespace DebugMode
                     CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
 
                     CreateButton(__instance, "Gimme the rest", CoroutineWrapper(
-                        PoolCards(new CardWeightTable(RarityWeightTable.AllOnes, OwnerWeightTable.Valid, 
+                        PoolCards(new CardWeightTable(RarityWeightTable.AllOnes, OwnerWeightTable.Valid,
                         new CardTypeWeightTable(0f, 0f, 0f, 0f, 1f, 0f, 0f)
-                        ), 
+                        ),
                         false,
                         typeCache.theRest)));
 
 
-                    
+
 
                     CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(typeCache.cEx)));
                     CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(typeCache.uEx)));
@@ -307,16 +313,17 @@ namespace DebugMode
                     CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
 
 
-                    CreateButton(__instance, "Output All Config", () => { });
+                    CreateButton(__instance, "Output All Config", CoroutineWrapper(UniTask.ToCoroutine(() => OutputConfig())));
 
                 }
+
 
             }
 
 
 
 
-            public static void CreateButton(SelectDebugPanel debugPanel, string desc, UnityEngine.Events.UnityAction action)
+            public static Button CreateButton(SelectDebugPanel debugPanel, string desc, UnityEngine.Events.UnityAction action)
             {
                 var button = UnityEngine.Object.Instantiate<Button>(debugPanel.buttonTemplate, debugPanel.layout);
 
@@ -333,7 +340,69 @@ namespace DebugMode
                 
                 button.gameObject.SetActive(true);
 
+                return button;
+
             }
+
+            static SemaphoreSlim semaphoreOutputConfig = new SemaphoreSlim(1);
+
+            public static async UniTask OutputConfig()
+            {
+                if (await semaphoreOutputConfig.WaitAsync(0))
+                {
+                    try
+                    {
+                        var dir = "readableConfig";
+                        Directory.CreateDirectory(dir);
+
+                        var maxLineLength = 100;
+
+                        Action<Type> writeConfig = (configType) =>
+                        {
+
+                            using (FileStream fileStream = File.Open($"{dir}/{configType.Name}.txt", FileMode.Create, FileAccess.Write, FileShare.None))
+                            {
+                                using (StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8) { AutoFlush = true })
+                                {
+                                    var allConfig = (Array)ConfigReflection.GetArrayField(configType).GetValue(null);
+                                    foreach (var conf in allConfig)
+                                    {
+
+                                        string wrappedText = Regex.Replace(conf.ToString(), "(.{1," + maxLineLength + @"})(\s+|$)", "$1" + System.Environment.NewLine);
+
+                                        streamWriter.Write(wrappedText);
+                                        streamWriter.WriteLine("------------------------");
+                                    }
+                                }
+                            }
+                        };
+
+
+                        foreach (var ct in ConfigReflection.AllConfigTypes())
+                        {
+                            await UniTask.RunOnThreadPool(() => writeConfig(ct));
+                        }
+
+
+                        log.LogInfo($"Done writing config at LBoL/{dir}/!");
+                    }
+                    finally
+                    {
+                        semaphoreOutputConfig.Release();
+                    }
+
+                }
+                else
+                {
+                    log.LogInfo("Already writing config, please wait.");
+                }
+
+
+
+            }
+
+
+
             public static IEnumerator RemoveCards()
             {
 
