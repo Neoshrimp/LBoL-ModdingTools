@@ -313,7 +313,10 @@ namespace DebugMode
                     CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
 
 
-                    CreateButton(__instance, "Output All Config", CoroutineWrapper(UniTask.ToCoroutine(() => OutputConfig())));
+                    //CreateButton(__instance, "Output All Config", CoroutineWrapper(UniTask.ToCoroutine(() => OutputConfig())));
+
+                    CreateButton(__instance, "Output All Config", async () => await OutputConfig());
+
 
                 }
 
@@ -346,13 +349,14 @@ namespace DebugMode
 
             static SemaphoreSlim semaphoreOutputConfig = new SemaphoreSlim(1);
 
+            
             public static async UniTask OutputConfig()
             {
                 if (await semaphoreOutputConfig.WaitAsync(0))
                 {
                     try
                     {
-                        var dir = "readableConfig";
+                        var dir = $"readableConfig_{VersionInfo.Current.Version}";
                         Directory.CreateDirectory(dir);
 
                         var maxLineLength = 100;
