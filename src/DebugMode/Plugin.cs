@@ -381,7 +381,8 @@ namespace DebugMode
 
                                         string wrappedText = Regex.Replace( conf.ToString(), "(.{1," + maxLineLength + @"})(\s+|$)", "$1" + System.Environment.NewLine);
 
-                                        streamWriter.WriteLine($"{localizedName}: ");
+                                        if(!string.IsNullOrEmpty(localizedName))
+                                            streamWriter.WriteLine($"{localizedName}: ");
                                         streamWriter.Write(wrappedText);
                                         streamWriter.WriteLine("------------------------");
                                     }
