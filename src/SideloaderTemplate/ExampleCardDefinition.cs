@@ -25,7 +25,7 @@ namespace SideloaderTemplate
 
         public override LocalizationOption LoadLocalization()
         {
-            return null;
+            return null;    
         }
 
         public override CardConfig MakeConfig()

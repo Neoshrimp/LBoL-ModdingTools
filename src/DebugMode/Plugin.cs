@@ -313,8 +313,6 @@ namespace DebugMode
                     CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
 
 
-                    //CreateButton(__instance, "Output All Config", CoroutineWrapper(UniTask.ToCoroutine(() => OutputConfig())));
-
                     CreateButton(__instance, "Output All Config", async () => await OutputConfig());
 
 
@@ -349,7 +347,6 @@ namespace DebugMode
 
             static SemaphoreSlim semaphoreOutputConfig = new SemaphoreSlim(1);
 
-            
             public static async UniTask OutputConfig()
             {
                 if (await semaphoreOutputConfig.WaitAsync(0))
@@ -372,8 +369,19 @@ namespace DebugMode
                                     foreach (var conf in allConfig)
                                     {
 
-                                        string wrappedText = Regex.Replace(conf.ToString(), "(.{1," + maxLineLength + @"})(\s+|$)", "$1" + System.Environment.NewLine);
+                                        var localizedName = "";
+                                        if (ConfigReflection.GetConfig2FactoryType(true).TryGetValue(configType, out Type factype))
+                                        { 
+                                            if(TypeFactoryReflection.AccessTypeLocalizers(factype)().TryGetValue((string)ConfigReflection.GetIdField(configType)?.GetValue(conf), out Dictionary<string, object> terms) && terms.TryGetValue("Name", out object name))
+                                            {
+                                                localizedName = name?.ToString();
+                                            }
+                                        
+                                        }
 
+                                        string wrappedText = Regex.Replace( conf.ToString(), "(.{1," + maxLineLength + @"})(\s+|$)", "$1" + System.Environment.NewLine);
+
+                                        streamWriter.WriteLine($"{localizedName}: ");
                                         streamWriter.Write(wrappedText);
                                         streamWriter.WriteLine("------------------------");
                                     }
