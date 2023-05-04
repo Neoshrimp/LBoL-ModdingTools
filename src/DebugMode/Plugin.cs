@@ -164,6 +164,29 @@ namespace DebugMode
         }
 
 
+
+        [HarmonyPatch(typeof(BattleAdvTest), nameof(BattleAdvTest.CreateMap))]
+        class BattleAdvTest_Patch
+        {
+            static bool Prefix(BattleAdvTest __instance, ref GameMap __result)
+            {
+                var debugStations = new List<StationType>();
+
+                debugStations.AddRange(Enumerable.Repeat(StationType.BattleAdvTest, 70));
+                debugStations.AddRange(Enumerable.Repeat(StationType.Shop, 30));
+                debugStations.AddRange(Enumerable.Repeat(StationType.Gap, 30));
+
+                debugStations.Shuffle(new RandomGen(RandomGen.GetRandomSeed()));
+
+                __result = GameMap.CreateMultiRoute(__instance.Boss.Id, debugStations.ToArray());
+
+                return false;
+            }
+        }
+
+
+
+
         private void Update()
         {
 
@@ -312,6 +335,11 @@ namespace DebugMode
 
                     CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
 
+                    CreateButton(__instance, "Gimme Cash", () => {
+                        GameMaster.Instance?.CurrentGameRun.GainMoney(10000, false);
+                    });
+
+
 
                     CreateButton(__instance, "Output All Config", async () => await OutputConfig());
 
@@ -370,7 +398,8 @@ namespace DebugMode
                                     {
 
                                         var localizedName = "";
-                                        if (ConfigReflection.GetConfig2FactoryType(true).TryGetValue(configType, out Type factype))
+                                        // finds localized name associated with config if it has one
+                                        if (ConfigReflection.GetConfig2FactoryType().TryGetValue(configType, out Type factype))
                                         { 
                                             if(TypeFactoryReflection.AccessTypeLocalizers(factype)().TryGetValue((string)ConfigReflection.GetIdField(configType)?.GetValue(conf), out Dictionary<string, object> terms) && terms.TryGetValue("Name", out object name))
                                             {
