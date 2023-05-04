@@ -172,7 +172,7 @@ namespace DebugMode
             {
                 var debugStations = new List<StationType>();
 
-                debugStations.AddRange(Enumerable.Repeat(StationType.BattleAdvTest, 70));
+                debugStations.AddRange(Enumerable.Repeat(StationType.BattleAdvTest, 85));
                 debugStations.AddRange(Enumerable.Repeat(StationType.Shop, 30));
                 debugStations.AddRange(Enumerable.Repeat(StationType.Gap, 30));
 
