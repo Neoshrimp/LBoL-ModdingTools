@@ -7,12 +7,14 @@ Instructions:
 - Copy [`LBoL Sideloader Template.zip`](https://github.com/Neoshrimp/LBoL-ModdingTools/raw/master/src/SideloaderTemplate/LBoL%20Sideloader%20Template.zip) to `<User>\Documents\Visual Studio 2022\Templates\ProjectTemplates` (no need to extract).
 
 - Create a new project, search for LBoL Sideloader template.
+
 ![image](https://user-images.githubusercontent.com/89428565/236344254-6eefaa12-c897-4406-867c-1abfa2259f65.png)
-
-
 - Change _GameFolder_ in .csproj file to target the game installation folder.
+
 ![image](https://user-images.githubusercontent.com/89428565/236344281-02c506b5-42bf-4398-a8fc-19a07d727785.png)
-- In `PluginInfo.cs` class fill out GUID and Name.
+- In `PluginInfo.cs` class fill out `GUID` and `Name`. Mod will fail to load without GUID!
+
+![image](https://user-images.githubusercontent.com/89428565/236587701-cbeea462-62ff-4762-a1b0-54175b8a0918.png)
 
 
 For first time setup:
