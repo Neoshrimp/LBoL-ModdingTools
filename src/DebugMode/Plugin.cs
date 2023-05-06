@@ -170,13 +170,9 @@ namespace DebugMode
         {
             static bool Prefix(BattleAdvTest __instance, ref GameMap __result)
             {
-                var debugStations = new List<StationType>();
-
-                debugStations.AddRange(Enumerable.Repeat(StationType.BattleAdvTest, 85));
-                debugStations.AddRange(Enumerable.Repeat(StationType.Shop, 30));
-                debugStations.AddRange(Enumerable.Repeat(StationType.Gap, 30));
-
-                debugStations.Shuffle(new RandomGen(RandomGen.GetRandomSeed()));
+                // for game loading
+                if (debugStations.Empty())
+                    ShuffleStations();
 
                 __result = GameMap.CreateMultiRoute(__instance.Boss.Id, debugStations.ToArray());
 
@@ -185,7 +181,18 @@ namespace DebugMode
         }
 
 
+        static List<StationType> debugStations = new List<StationType>();
 
+        static void ShuffleStations()
+        {
+            debugStations = new List<StationType>();
+
+            debugStations.AddRange(Enumerable.Repeat(StationType.BattleAdvTest, 85));
+            debugStations.AddRange(Enumerable.Repeat(StationType.Shop, 30));
+            debugStations.AddRange(Enumerable.Repeat(StationType.Gap, 30));
+
+            debugStations.Shuffle(new RandomGen(RandomGen.GetRandomSeed()));
+        }
 
         private void Update()
         {
@@ -194,6 +201,8 @@ namespace DebugMode
             {
                 if (GameMaster.Instance?.CurrentGameRun == null)
                 {
+
+                    ShuffleStations();
 
                     StartGameData startGameData = new StartGameData();
                     startGameData.StagesCreateFunc = () => new Stage[]

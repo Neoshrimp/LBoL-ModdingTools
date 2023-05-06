@@ -12,6 +12,7 @@ Instructions:
 
 - Change _GameFolder_ in .csproj file to target the game installation folder.
 ![image](https://user-images.githubusercontent.com/89428565/236344281-02c506b5-42bf-4398-a8fc-19a07d727785.png)
+- In `PluginInfo.cs` class fill out GUID and Name.
 
 
 For first time setup:
