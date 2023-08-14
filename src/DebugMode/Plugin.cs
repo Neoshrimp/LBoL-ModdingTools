@@ -31,6 +31,9 @@ using UnityEngine.UI;
 using LBoLEntitySideloader.ReflectionHelpers;
 using System.Text.RegularExpressions;
 using System.Threading;
+using static LBoL.Core.CrossPlatformHelper;
+using System.Net.NetworkInformation;
+using static DebugMode.Plugin;
 
 namespace DebugMode
 {
@@ -78,7 +81,18 @@ namespace DebugMode
             {
                 // for game loading
                 if (debugStations.Empty())
-                    ShuffleStations();
+                {
+                    var gr = __instance.GameRun;
+                    ulong? seed = null;
+
+                    if (gr != null)
+                    {
+                        seed = gr.RootSeed;
+                    }
+
+                    ShuffleStations(seed);
+
+                }
 
                 __result = GameMap.CreateMultiRoute(__instance.Boss.Id, debugStations.ToArray());
 
@@ -89,7 +103,7 @@ namespace DebugMode
 
         static List<StationType> debugStations = new List<StationType>();
 
-        static void ShuffleStations()
+        static void ShuffleStations(ulong? seed = null)
         {
             debugStations = new List<StationType>();
 
@@ -97,8 +111,15 @@ namespace DebugMode
             debugStations.AddRange(Enumerable.Repeat(StationType.Shop, 30));
             debugStations.AddRange(Enumerable.Repeat(StationType.Gap, 30));
 
-            debugStations.Shuffle(new RandomGen(RandomGen.GetRandomSeed()));
+            seed ??= RandomGen.GetRandomSeed();
+
+            debugStations.Shuffle(new RandomGen(seed.Value));
         }
+
+
+
+
+
 
         private void Update()
         {
@@ -172,39 +193,28 @@ namespace DebugMode
             public HashSet<Type> sEx = new HashSet<Type>();
 
             public HashSet<Type> theRest = new HashSet<Type>();
-        }
 
 
-        [HarmonyPatch(typeof(SelectDebugPanel))]
-        class SelectDebugPanel_Patch
-        {
-
-            static TypeCache typeCache;
-
-            [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
-            [HarmonyPostfix]
-            static void OnShowing_Postfix()
+            public void BuildCache()
             {
-                // clear cache
-                typeCache = new TypeCache();
                 foreach (var tc in Library.EnumerateExhibitTypes().OrderByDescending(tc => tc.config.Index))
                 {
                     switch (tc.config.Rarity)
                     {
                         case Rarity.Common:
-                            typeCache.cEx.Add(tc.exhibitType);
+                            this.cEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Uncommon:
-                            typeCache.uEx.Add(tc.exhibitType);
+                            this.uEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Rare:
-                            typeCache.rEx.Add(tc.exhibitType);
+                            this.rEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Mythic:
-                            typeCache.mEx.Add(tc.exhibitType);
+                            this.mEx.Add(tc.exhibitType);
                             break;
                         case Rarity.Shining:
-                            typeCache.sEx.Add(tc.exhibitType);
+                            this.sEx.Add(tc.exhibitType);
                             break;
                         default:
                             log.LogWarning($"Exhibit {tc.exhibitType.Name} doesn't have a rarity");
@@ -212,11 +222,32 @@ namespace DebugMode
                     }
                 }
 
-                Library.EnumerateCardTypes().Where(tc => tc.config.Type == 
+                Library.EnumerateCardTypes().Where(tc => tc.config.Type ==
                 CardType.Misfortune || tc.config.Type == CardType.Status || tc.config.Type == CardType.Unknown
                 //|| !tc.config.IsPooled
                 ).
-                Select(tc => tc.cardType).Do(t => typeCache.theRest.Add(t));
+                Select(tc => tc.cardType).Do(t => this.theRest.Add(t));
+
+            }
+        }
+
+
+        [HarmonyPatch(typeof(SelectDebugPanel))]
+        public class SelectDebugPanel_Patch
+        {
+
+            static TypeCache typeCache = null;
+
+
+
+            [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
+            [HarmonyPostfix]
+            static void OnShowing_Postfix()
+            {
+                // clear cache
+                typeCache = new TypeCache();
+                typeCache.BuildCache();
+
             }
 
 
@@ -228,6 +259,12 @@ namespace DebugMode
                 if (__instance._selectionType == SelectDebugPanel.SelectionType.RealName)
                 {
 
+                    if (typeCache == null)
+                    {
+                        typeCache = new TypeCache();
+                        typeCache.BuildCache();
+                    }
+
                     CreateButton(__instance, "Gimme Commons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyCommon))));
                     CreateButton(__instance, "Gimme Uncommons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyUncommon))));
                     CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
@@ -238,8 +275,6 @@ namespace DebugMode
                         ),
                         false,
                         typeCache.theRest)));
-
-
 
 
                     CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(typeCache.cEx)));
@@ -259,6 +294,8 @@ namespace DebugMode
                     CreateButton(__instance, "Output All Config", async () => await OutputConfig());
 
 
+                    // not working..
+                    //CreateButton(__instance, "Screenshot Cards", CoroutineWrapper(ScreencapCards()));
                 }
 
 
@@ -275,7 +312,7 @@ namespace DebugMode
 
                 button.onClick.AddListener( action );
 
-                // reset to make button clickable again
+                // reset to make buttons clickable again
                 button.onClick.AddListener(delegate
                 {
                     debugPanel.SelectAdventure();
@@ -358,6 +395,148 @@ namespace DebugMode
 
             }
 
+
+            // not working..
+            public static IEnumerator DoScreencaps()
+            {
+
+                var cardPanel = UiManager.GetPanel<SelectCardPanel>();
+                log.LogDebug($"CardPanel: {cardPanel}");
+
+
+                var cardLayout = cardPanel.normalSelectCardRoot.Find("ScrollRect")?.Find("CardLayout");
+
+                if (cardLayout == null)
+                    throw new NullReferenceException("Can't find CardLayout in transform hierarchy");
+
+                var dir = $"card_screencaps_{VersionInfo.Current.Version}";
+                Directory.CreateDirectory(dir);
+
+                var uiCam = GameObject.Find("UICamera").GetComponent<Camera>();
+
+                log.LogDebug($"uicam: {uiCam}");
+
+                foreach (Transform trans in cardLayout)
+                {
+
+                    yield return new WaitForEndOfFrame();
+
+
+                    var rectT = trans.gameObject.GetComponent<RectTransform>();
+
+                    var card = trans.gameObject.GetComponent<CardWidget>().Card;
+
+                    var cardId = card.Id;
+
+
+
+
+
+/*                    RenderTexture rt = RenderTexture.GetTemporary(width, height, 24);
+                    rt.antiAliasing = 8;
+                    rt.filterMode = FilterMode.Trilinear;
+                    rt.anisoLevel = 16;
+
+                    uiCam.targetTexture = rt;
+                    uiCam.clearFlags = CameraClearFlags.Color;
+                    uiCam.backgroundColor = Color.black;
+                    uiCam.gameObject.SetActive(true);
+
+                    uiCam.Render();*/
+
+
+				    //UiManager.GetPanel<CardDetailPanel>().Show(new CardDetailPayload(rectT, card));
+
+
+                    Vector3[] corners = new Vector3[4];
+                    rectT.GetWorldCorners(corners);
+
+
+                    for (var i = 0; i < 4; i++)
+                    {
+                        Debug.Log("World Corner " + i + " : " + corners[i]);
+                    }
+
+
+                    int width = (int)Vector3.Distance(corners[0], corners[3]);
+                    //((int)corners[1].x - (int)corners[2].x);
+                    int height = (int)Vector3.Distance(corners[0], corners[1]);
+                    // (int)corners[1].y - (int)corners[0].y;
+                    var startX = corners[1].x;
+                    var startY = corners[1].y;
+
+
+/*                    var width = Convert.ToInt32(rectT.rect.width);
+                    var height = Convert.ToInt32(rectT.rect.height);
+                    Vector2 vector2 = rectT.position;
+                    Debug.Log(vector2);
+                    var startX = vector2.x - width / 2;
+                    var startY = vector2.y - height / 2;*/
+
+                    Debug.Log($"{startX} : {startY}");
+                    Debug.Log($"{width} : {height}");
+
+
+
+
+                    var tex = new Texture2D(width, height);
+                    tex.ReadPixels(new Rect(startX, startY, width, height), 0, 0);
+                    tex.Apply();
+
+                    // Encode texture into PNG
+                    var bytes = tex.EncodeToPNG();
+
+                    File.WriteAllBytes(Path.Combine(dir, $"{cardId}.png"), bytes);
+
+                    Destroy(tex);
+                    //UiManager.GetPanel<CardDetailPanel>().Hide(false);
+
+
+                }
+            }
+
+            // not working..
+            public static IEnumerator ScreencapCards()
+            {
+
+                var gr = GameMaster.Instance.CurrentGameRun;
+
+                if (gr == null)
+                    yield break;
+
+                var cards = Library.EnumerateCardTypes().Select(tc => Library.CreateCard(tc.cardType)).OrderBy(c => c.CardType).Where((v, i) => i < 10);
+                //debug
+
+
+                // UiManager.GetPanel<SelectDebugPanel>().buttonTemplate
+
+                var panel = UiManager.GetPanel<SelectCardPanel>();
+
+                var srcCapButton = UnityEngine.Object.Instantiate<Button>(panel.confirmButton, panel.normalSelectCardRoot.Find("ButtonLayout"));
+
+                //var srcCapButton = UnityEngine.Object.Instantiate<Button>(panel.confirmButton, __instance.layout);
+
+
+                srcCapButton.transform.GetComponentInChildren<TextMeshProUGUI>().text = "Take screencaps..";
+
+                srcCapButton.onClick.AddListener(CoroutineWrapper(DoScreencaps()));
+
+                srcCapButton.gameObject.SetActive(true);
+
+
+                SelectCardInteraction interaction = new SelectCardInteraction(0, cards.Count(), cards, SelectedCardHandling.DoNothing)
+                {
+                    CanCancel = true,
+                    Description = "Screencapping cards..", 
+                };
+
+                yield return gr.InteractionViewer.View(interaction);
+
+                log.LogInfo("deez");
+
+                Destroy(srcCapButton);
+
+            }
 
 
             public static IEnumerator RemoveCards()

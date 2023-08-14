@@ -78,6 +78,9 @@
     <Reference Include="UniTask">
         <HintPath>$(GameFolder)\LBoL_Data\Managed\UniTask.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+        <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
     <Reference Include="LBoL-Entity-Sideloader">
         <HintPath>$(BepInExFolder)\plugins\LBoL-Entity-Sideloader.dll</HintPath>
     </Reference>
