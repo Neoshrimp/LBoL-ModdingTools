@@ -287,6 +287,18 @@
         <Reference Include="LBoL-AddWatermark">
             <HintPath>$(BepInExFolder)\plugins\LBoL-AddWatermark.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.AudioModule">
+            <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UnityWebRequestModule">
+            <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UnityEngine.UnityWebRequestAudioModule">
+            <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UniTask">
+            <HintPath>$(GameFolder)\LBoL_Data\Managed\UniTask.dll</HintPath>
+        </Reference>        
     </ItemGroup>
 
 
@@ -296,12 +308,13 @@
 
 
     <ItemGroup>
+      <Folder Include="DirResources\" />
       <Folder Include="Resources\" />
     </ItemGroup>
 
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;$(BepInExFolder)\scripts&quot;&#xD;&#xA;copy /Y &quot;$(TargetPath)&quot; &quot;$(ProjectDir)&quot;" />
+        <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;$(BepInExFolder)\scripts&quot;&#xD;&#xA;copy /Y &quot;$(TargetPath)&quot; &quot;$(ProjectDir)&quot;&#xD;&#xA;echo $(AssemblyName)&#xD;&#xA;IF exist &quot;$(BepInExFolder)\plugins\$(AssemblyName)&quot; goto skipDir&#xD;&#xA;mkdir &quot;$(BepInExFolder)\plugins\$(AssemblyName)&quot;&#xD;&#xA;:skipDir&#xD;&#xA;copy /Y &quot;$(ProjectDir)DirResources\*&quot; &quot;$(BepInExFolder)\plugins\$(AssemblyName)&quot; &#xD;&#xA;powershell -command &quot;Compress-Archive -Path '$(TargetPath)', '$(ProjectDir)DirResources\*', '$(ProjectDir)manifest.json', '$(ProjectDir)icon.png', '$(ProjectDir)README.md'   -DestinationPath  '$(ProjectDir)$(AssemblyName)-thunderstore.zip' -Force&quot;" />
     </Target>
 
 

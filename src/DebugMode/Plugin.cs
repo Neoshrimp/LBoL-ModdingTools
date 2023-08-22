@@ -74,6 +74,27 @@ namespace DebugMode
 
 
 
+        [HarmonyPatch]
+        class BattleAdvTestBoss_Patch
+        {
+
+
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return AccessTools.DeclaredConstructor(typeof(BattleAdvTest));
+            }
+
+
+            static void Postfix(BattleAdvTest __instance)
+            {
+                __instance.BossPool = new RepeatableRandomPool<string> { { "Seija", 1f } };
+
+            }
+        }
+
+
+
+
         [HarmonyPatch(typeof(BattleAdvTest), nameof(BattleAdvTest.CreateMap))]
         class BattleAdvTest_Patch
         {
@@ -94,6 +115,7 @@ namespace DebugMode
 
                 }
 
+
                 __result = GameMap.CreateMultiRoute(__instance.Boss.Id, debugStations.ToArray());
 
                 return false;
@@ -110,6 +132,7 @@ namespace DebugMode
             debugStations.AddRange(Enumerable.Repeat(StationType.BattleAdvTest, 85));
             debugStations.AddRange(Enumerable.Repeat(StationType.Shop, 30));
             debugStations.AddRange(Enumerable.Repeat(StationType.Gap, 30));
+
 
             seed ??= RandomGen.GetRandomSeed();
 

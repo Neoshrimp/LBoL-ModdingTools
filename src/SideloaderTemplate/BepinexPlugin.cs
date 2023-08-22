@@ -33,7 +33,6 @@ using LBoL.EntityLib.Adventures.Stage1;
 using LBoL.EntityLib.Adventures.Stage2;
 using LBoL.EntityLib.Adventures.Stage3;
 using LBoL.EntityLib.Cards.Character.Cirno;
-using LBoL.EntityLib.Cards.Character.Cirno.FairySupport;
 using LBoL.EntityLib.Cards.Character.Koishi;
 using LBoL.EntityLib.Cards.Character.Marisa;
 using LBoL.EntityLib.Cards.Character.Reimu;
@@ -119,20 +118,23 @@ using Debug = UnityEngine.Debug;
 
 namespace SideloaderTemplate
 {
-    [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.version)]
+    [BepInPlugin(SideloaderTemplate.PInfo.GUID, SideloaderTemplate.PInfo.Name, SideloaderTemplate.PInfo.version)]
     [BepInDependency(LBoLEntitySideloader.PluginInfo.GUID, BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(AddWatermark.API.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInProcess("LBoL.exe")]
     public class BepinexPlugin : BaseUnityPlugin
     {
 
-        private static readonly Harmony harmony = PluginInfo.harmony;
+        private static readonly Harmony harmony = SideloaderTemplate.PInfo.harmony;
 
         internal static BepInEx.Logging.ManualLogSource log;
 
         internal static TemplateSequenceTable sequenceTable = new TemplateSequenceTable();
 
         internal static IResourceSource embeddedSource = new EmbeddedSource(Assembly.GetExecutingAssembly());
+
+        // add this for audio loading
+        internal static DirectorySource directorySource = new DirectorySource(SideloaderTemplate.PInfo.GUID, "");
 
 
         private void Awake()

@@ -2,7 +2,7 @@
 
 namespace SideloaderTemplate
 {
-    public static class PluginInfo
+    public static class PInfo
     {
         // each loaded plugin needs to have a unique GUID. usually author+generalCategory+Name is good enough
         public const string GUID = "";
