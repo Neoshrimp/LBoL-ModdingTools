@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SideloaderTemplate", "src\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "..\IntoxicatedKid-TestMod\test.csproj", "{2818A28D-7131-4891-90DF-2C61FB90EFEE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CWT_test", "src\CWT_test\CWT_test.csproj", "{879623E7-5955-4841-A28D-F823E0E710F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{2818A28D-7131-4891-90DF-2C61FB90EFEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2818A28D-7131-4891-90DF-2C61FB90EFEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2818A28D-7131-4891-90DF-2C61FB90EFEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{879623E7-5955-4841-A28D-F823E0E710F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{879623E7-5955-4841-A28D-F823E0E710F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{879623E7-5955-4841-A28D-F823E0E710F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{879623E7-5955-4841-A28D-F823E0E710F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
