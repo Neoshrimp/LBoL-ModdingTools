@@ -41,15 +41,23 @@ namespace NoSteam
         }
 
 
+        public static bool foundSteam = false;
+
         [HarmonyPatch(typeof(SteamPlatformHandler), nameof(SteamPlatformHandler.Init))]
         class SteamPlatformHandlerInit_Patch
         {
-            static void Prefix()
-            {
 
-            }
             static void Postfix(ref bool __result, SteamPlatformHandler __instance)
             {
+
+                if (__result == true)
+                {
+
+                    foundSteam = true;
+                    log.LogInfo("Steam is ON. This plugins' effect is disabled..");
+                    return;
+                }
+
                 __result = true;
                 var steamId = Directory.GetDirectories(Application.persistentDataPath).Select(
                     d => Regex.Match(d, @"\d+$", RegexOptions.RightToLeft)).First().Value;
@@ -78,7 +86,7 @@ namespace NoSteam
 
             static bool Prefix()
             {
-                return false;
+                return foundSteam;
             }
 
         }
@@ -90,7 +98,7 @@ namespace NoSteam
             static bool Prefix(ref Locale __result)
             {
                 __result = Locale.En;
-                return false;
+                return foundSteam;
             }
 
         }
