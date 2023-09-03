@@ -4,7 +4,7 @@ Use is highly encouraged as it has dependencies, publicizer and common boilerpla
 
 
 Instructions:
-- Copy [`LBoL Sideloader Template.zip`](https://github.com/Neoshrimp/LBoL-ModdingTools/raw/master/src/SideloaderTemplate/LBoL%20Sideloader%20Template.zip) to `<User>\Documents\Visual Studio 2022\Templates\ProjectTemplates` do NOT unzip.
+- Copy [`SideloaderTemplate.zip`](https://github.com/Neoshrimp/LBoL-ModdingTools/blob/master/src/SideloaderTemplate/SideloaderTemplate.zip) to `<User>\Documents\Visual Studio 2022\Templates\ProjectTemplates` do NOT unzip.
 
 - Create a new project, search for LBoL Sideloader template.
 
