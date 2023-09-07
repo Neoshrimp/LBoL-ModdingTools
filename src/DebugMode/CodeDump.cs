@@ -946,3 +946,165 @@ namespace LBoLEntitySideloader.TemplateGen
     }
 }
 
+// shit doesn't work
+
+        static FieldInfo _selectedEnemyField = AccessTools.Field(typeof(UnitSelector), nameof(UnitSelector._selectedEnemy));
+
+        [HarmonyPatch]
+        class UnitSelector_Patch
+        {
+
+
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return AccessTools.DeclaredPropertyGetter(typeof(UnitSelector), nameof(UnitSelector.SelectedEnemy));
+            }
+
+
+            static bool Prefix(ref EnemyUnit __result, UnitSelector __instance)
+            {
+                if (__instance.Type != TargetType.SingleEnemy && __instance.Type != TargetType.RandomEnemy)
+                {
+                    throw new InvalidOperationException(string.Format("Cannot get enemy with type '{0}'", __instance.Type));
+                }
+
+
+
+
+                if (__instance._selectedEnemy == null && __instance.Type == TargetType.RandomEnemy)
+                {
+
+
+                    var randomEnemy = GameMaster.Instance.CurrentGameRun.Battle.AllAliveEnemies.Sample(GameMaster.Instance.CurrentGameRun.BattleRng);
+
+                    log.LogDebug(randomEnemy);
+
+                    _selectedEnemyField.SetValue(__instance, randomEnemy);
+                    
+                }
+
+
+                __result = __instance._selectedEnemy;
+
+                return false;
+
+
+            }
+        }
+
+
+        [HarmonyPatch]
+        class UnitSelector_GetEnemy_Patch
+        {
+
+
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return AccessTools.Method(typeof(UnitSelector), nameof(UnitSelector.GetEnemy));
+                yield return AccessTools.Method(typeof(UnitSelector), nameof(UnitSelector.GetUnits));
+
+            }
+
+
+            static EnemyUnit Set_selectedEnemy(EnemyUnit randomEnemy, UnitSelector unitSelector)
+            {
+                if (unitSelector._selectedEnemy == null)
+                    _selectedEnemyField.SetValue(unitSelector, randomEnemy);
+                return unitSelector._selectedEnemy;
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                int i = 0;
+                var ciList = instructions.ToList();
+                var c = ciList.Count();
+                CodeInstruction prevCi = null;
+                foreach (var ci in instructions)
+                {
+                    if (ci.Is(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(BattleController), nameof(BattleController.RandomAliveEnemy))))
+                    {
+                        yield return ci;
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(UnitSelector_GetEnemy_Patch), nameof(UnitSelector_GetEnemy_Patch.Set_selectedEnemy)));
+
+                    }
+                    else
+                    {
+                        yield return ci;
+                    }
+                    prevCi = ci;
+                    i++;
+                }
+            }
+
+        }
+		
+		
+/*                return new CodeMatcher(instructions)
+			.MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Cannot dequeue consuming mana, resetting all."))
+			.Advance(1)
+			.Set(OpCodes.Pop, null)
+			.End()
+			.ThrowIfNotMatchBack("deez", new CodeMatch(OpCodes.Leave))
+			.Advance(1)
+			.Insert(new CodeInstruction(OpCodes.Nop))
+			.InstructionEnumeration();*/
+
+
+/*using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Xml.Linq;
+using UnityEngine;
+
+namespace LBoLEntitySideloader.Resource
+{
+    public class SfxResource : IResourceProvider<AudioClip>
+    {
+
+        public IResourceSource resourceSource;
+
+        public AudioType audioType = AudioType.OGGVORBIS;
+
+        public Func<string, AudioClip> loadingAction;
+
+        public List<string> clipNames = new List<string>(); 
+
+        public SfxResource(IResourceSource resourceSource, string clipName = null, AudioType? audioType = null, Func<string, AudioClip> loadingAction = null)
+        {
+            this.resourceSource = resourceSource;
+            if(audioType != null)
+                this.audioType = audioType.Value;
+            if (loadingAction != null)
+                this.loadingAction = loadingAction;
+            else
+                loadingAction = (string name) => DefaultLoadingAction(name);
+
+
+        }
+
+        private async UniTask<AudioClip> DefaultLoadingAction(string name)
+        {
+            return await ResourceLoader.LoadAudioClip(name, audioType, (DirectorySource)resourceSource);
+        }
+
+
+        public virtual AudioClip Load()
+        {
+            
+        }
+
+        public virtual Dictionary<string, AudioClip> LoadMany()
+        {
+            var dic = new Dictionary<string, AudioClip>();
+            foreach(var n in clipNames)
+            {
+                dic.Add(n, loadingAction(n));
+            }
+            return dic;
+        }
+    }
+}
+*/
