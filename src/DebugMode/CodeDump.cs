@@ -1108,3 +1108,68 @@ namespace LBoLEntitySideloader.Resource
     }
 }
 */
+
+
+/*        [HarmonyPatch]
+		class funny_Patch
+		{
+
+
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				yield return ExtraAccess.InnerMoveNext(typeof(SelectCardPanel), nameof(SelectCardPanel.ViewMiniSelect));
+			}
+
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				int i = 0;
+				var ciList = instructions.ToList();
+				var c = ciList.Count();
+				CodeInstruction prevCi = null;
+				foreach (var ci in instructions)
+				{
+					if (ci.Is(OpCodes.Ldc_R4, 0.2f) && prevCi.Is(OpCodes.Ldc_R4, 0f))
+					{
+						log.LogDebug("injected");
+						yield return new CodeInstruction(OpCodes.Ldc_R4, 0f);
+					}
+					else if (ci.opcode == OpCodes.Leave)
+					{
+						log.LogDebug("deez");
+
+						yield return ci;
+						yield return new CodeInstruction(OpCodes.Nop);
+					}
+					else
+					{
+						yield return ci;
+					}
+					prevCi = ci;
+					i++;
+				}
+			}
+		}*/.
+		
+		
+		
+using UnityEditor;
+using System.IO;
+
+public class BuildAB
+{
+    [MenuItem("Tools/BuildAB")]
+    public static void build()
+    {
+        string dir = "AB";
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows64);
+    }
+}
+
+
+//(Paste() as GameObject).GetComponent<LBoL.Presentation.Environment>().templates.ToList().ForEach(e => Debug.Log(e.name))
+
