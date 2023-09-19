@@ -26,6 +26,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static DebugMode.Plugin;
+using LBoLEntitySideloader.UIhelpers;
+using LBoL.Base.Extensions;
 
 namespace DebugMode
 {
@@ -355,9 +357,6 @@ namespace DebugMode
 
 
             }
-
-
-
         }
 
 
@@ -421,7 +420,7 @@ namespace DebugMode
 
             static public float anchorXcoord = -1750f;
 
-            static public int rowCount = 14;
+            static public int maxItemsInRow = 14;
 
             static void Postfix(RewardPanel __instance, ShowRewardContent showRewardContent)
             {
@@ -433,7 +432,7 @@ namespace DebugMode
                     {
                         var rewards = __instance.rewardLayout.GetComponentsInChildren<RewardWidget>();
 
-                        var i = 0;
+                        var items = 0;
                         var rows = 0;
 
                         foreach (var r in rewards)
@@ -441,19 +440,102 @@ namespace DebugMode
                             r.transform.transform.localScale = new Vector3(newWidgetScale, newWidgetScale, newWidgetScale);
                             r.transform.localPosition += new Vector3(0f, topShift - (rows * rowHeight));
 
-                            r.transform.localPosition = new Vector3(anchorXcoord + (widgetWidth * i), r.transform.localPosition.y, r.transform.localPosition.z);
+                            r.transform.localPosition = new Vector3(anchorXcoord + (widgetWidth * items), r.transform.localPosition.y, r.transform.localPosition.z);
 
-                            i++;
-                            if (i % rowCount == 0)
+                            items++;
+                            if (items % maxItemsInRow == 0)
                             {
                                 rows++;
-                                i = 0;
+                                items = 0;
                             }
                         }
 
 
+                        if (rewards.Empty())
+                            return;
+
+                        var rewardLayoutGo = rewards[0].gameObject.transform.parent.gameObject;
+
+                        // technically rect height and actual content size should be correlated through proportion but this is good enough
+                        float baseHeight = 4*rowHeight;
+
+                        var scrollGo = CreateVerticalScrollRect(rewardLayoutGo, typeof(RewardWidget), baseHeight);
+                        scrollGo.transform.localPosition += new Vector3(0, -400f, 0);
+
+                        var extraDist = Math.Max(0, (rows+1) * rowHeight - baseHeight);
+                        //log.LogDebug($"rows: {rows}, ExtraDist: {extraDist}");
+                        var rt = rewardLayoutGo.GetComponent<RectTransform>();
+                       
+
+                        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, baseHeight + extraDist);
+
                     }
                 }
+            }
+
+
+            static GameObject CreateVerticalScrollRect(GameObject content, Type itemComponentType, float scrollSize = 3000f)
+            {
+
+                var scrollGo = new GameObject("loadoutScroll");
+                scrollGo.layer = 5; //UI
+                scrollGo.transform.position = content.transform.position;
+                scrollGo.transform.SetParent(content.transform.parent);
+                // but why
+                scrollGo.transform.localScale = new Vector3(1, 1, 1);
+
+
+                content.transform.SetParent(scrollGo.transform);
+
+                var scrollRectS = scrollGo.AddComponent<ScrollRect>();
+
+                var contentRectT = content.GetComponent<RectTransform>();
+
+                var image = scrollGo.AddComponent<Image>();
+                image.color = new Color(0, 0, 0, 0f);
+
+
+                scrollGo.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0.5f);
+                scrollGo.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0.5f);
+
+                scrollGo.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 4200f);
+                scrollGo.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, scrollSize);
+
+                //scrollRectS.viewport = viewPort.GetComponent<RectTransform>();
+                scrollRectS.content = contentRectT;
+                scrollRectS.horizontal = false;
+                scrollRectS.vertical = true;
+                scrollRectS.scrollSensitivity = 25f;
+                scrollRectS.elasticity = 0.08f;
+                scrollRectS.movementType = ScrollRect.MovementType.Clamped;
+
+
+                content.transform.KeepPositionAfterAction(() =>
+                {
+                    contentRectT.anchorMax = new Vector2(0.5f, 1f);
+                    contentRectT.anchorMin = new Vector2(0.5f, 1f);
+                    //contentRectT.pivot = new Vector2(0.5F, 1f);
+                });
+
+                foreach (var o in content.transform)
+                {
+                    var rt = (RectTransform)o;
+                    if (rt.TryGetComponent(itemComponentType, out var _))
+                    {
+                        rt.KeepPositionAfterAction(() =>
+                        {
+                            rt.anchorMax = new Vector2(0.5f, 1f);
+                            rt.anchorMin = new Vector2(0.5f, 1f);
+                        });
+                    }
+                }
+
+                // max scrolling is relative to ScrollRect size
+                contentRectT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, scrollSize);
+
+
+                return scrollGo;
+
             }
         }
 

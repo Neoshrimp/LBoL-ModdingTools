@@ -10,9 +10,11 @@ namespace DebugMode
 {
     public class DebugKeys
     {
+        
         [HarmonyPatch(typeof(UiManager), nameof(UiManager.Awake))]
         class UiManager_Patch
         {
+            // runs earlier than scriptengine inits lol
             static void Postfix(UiManager __instance)
             {
                 var debugInputActionMap = __instance.inputActions.FindActionMap("Debug", false);
