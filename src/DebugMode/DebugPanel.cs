@@ -455,19 +455,34 @@ namespace DebugMode
                             return;
 
                         var rewardLayoutGo = rewards[0].gameObject.transform.parent.gameObject;
-
                         // technically rect height and actual content size should be correlated through proportion but this is good enough
-                        float baseHeight = 4*rowHeight;
+                        float baseHeight = 4 * rowHeight;
 
-                        var scrollGo = CreateVerticalScrollRect(rewardLayoutGo, typeof(RewardWidget), baseHeight);
-                        scrollGo.transform.localPosition += new Vector3(0, -400f, 0);
 
-                        var extraDist = Math.Max(0, (rows+1) * rowHeight - baseHeight);
+                        if (!rewardLayoutGo.transform.parent.TryGetComponent<ScrollRect>(out var _))
+                        {
+                            var scrollGo = CreateVerticalScrollRect(rewardLayoutGo, typeof(RewardWidget), baseHeight);
+                            scrollGo.transform.localPosition += new Vector3(0, -500f, 0);
+                        }
+                        else
+                        {
+                            foreach (var o in rewardLayoutGo.transform)
+                            {
+                                var rt = (RectTransform)o;
+                                if (rt.TryGetComponent(typeof(RewardWidget), out var _))
+                                {
+                                    rt.anchorMax = new Vector2(0.5f, 0.95f);
+                                    rt.anchorMin = new Vector2(0.5f, 0.95f);
+                                }
+                            }
+                        }
+
+
+
+                        var extraDist = Math.Max(0, (rows+1.5f) * rowHeight - baseHeight);
                         //log.LogDebug($"rows: {rows}, ExtraDist: {extraDist}");
-                        var rt = rewardLayoutGo.GetComponent<RectTransform>();
-                       
-
-                        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, baseHeight + extraDist);
+                        var rewardRt = rewardLayoutGo.GetComponent<RectTransform>();
+                        rewardRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, baseHeight + extraDist);
 
                     }
                 }
@@ -505,7 +520,7 @@ namespace DebugMode
                 scrollRectS.content = contentRectT;
                 scrollRectS.horizontal = false;
                 scrollRectS.vertical = true;
-                scrollRectS.scrollSensitivity = 25f;
+                scrollRectS.scrollSensitivity = 35f;
                 scrollRectS.elasticity = 0.08f;
                 scrollRectS.movementType = ScrollRect.MovementType.Clamped;
 
