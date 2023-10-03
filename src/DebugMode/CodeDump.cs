@@ -1158,10 +1158,10 @@ using System.IO;
 
 public class BuildAB
 {
-    [MenuItem("Tools/BuildAB")]
+    [MenuItem("Tools/BuildSuikaAB")]
     public static void build()
     {
-        string dir = "AB";
+        string dir = "Suika";
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
@@ -1173,3 +1173,39 @@ public class BuildAB
 
 //(Paste() as GameObject).GetComponent<LBoL.Presentation.Environment>().templates.ToList().ForEach(e => Debug.Log(e.name))
 
+
+
+/*            sprites.SetStartPanelStand(ResourceLoader.LoadSpriteAsync("Suika.png", dir));
+            sprites.SetDeckStand(ResourceLoader.LoadSpriteAsync("Suika.png", dir));
+
+            sprites.SetDefeatedStand(ResourceLoader.LoadSpriteAsync("DefeatedStand.png", dir));
+            sprites.SetWinStand(ResourceLoader.LoadSpriteAsync("Suika.png", dir));
+
+            sprites.SetInRunAvatarPic(() => ResourceLoader.LoadSprite("SuikaAvatar.png", dir));
+            sprites.SetCollectionIcon(() => ResourceLoader.LoadSprite("SuikaAvatar.png", dir));
+            sprites.SetSelectionCircleIcon(() => ResourceLoader.LoadSprite("SuikaAvatar.png", dir));
+
+            sprites.SetPerfectWinIcon(ResourceLoader.LoadSpriteAsync("SuikaAvatar.png", dir));
+            sprites.SetWinIcon(ResourceLoader.LoadSpriteAsync("SuikaAvatar.png", dir));
+            sprites.SetDefeatedIcon(ResourceLoader.LoadSpriteAsync("DefeatedIcon.png", dir));
+
+            sprites.SetCardBack(() => ResourceLoader.LoadSprite("SuikaCardBack.png", dir));*/
+
+
+
+
+            /*            sprites.SetStartPanelStand(default, () => suikaAB.LoadAsset<Sprite>("Suika"));
+                        sprites.SetDeckStand(default, () => suikaAB.LoadAsset<Sprite>("Suika"));
+
+                        sprites.SetDefeatedStand(default, () => ResourceLoader.LoadSprite("DefeatedStand.png", dir));
+                        sprites.SetWinStand(default, () => suikaAB.LoadAsset<Sprite>("Suika"));
+
+                        sprites.SetInRunAvatarPic(() => ResourceLoader.LoadSprite("SuikaAvatar.png", dir));
+                        sprites.SetCollectionIcon(() => ResourceLoader.LoadSprite("SuikaAvatar.png", dir));
+                        sprites.SetSelectionCircleIcon(() => ResourceLoader.LoadSprite("SuikaAvatar.png", dir));
+
+                        sprites.SetPerfectWinIcon(ResourceLoader.LoadSpriteAsync("SuikaAvatar.png", dir));
+                        sprites.SetWinIcon(ResourceLoader.LoadSpriteAsync("SuikaAvatar.png", dir));
+                        sprites.SetDefeatedIcon(ResourceLoader.LoadSpriteAsync("DefeatedIcon.png", dir));
+
+                        sprites.SetCardBack(() => ResourceLoader.LoadSprite("SuikaCardBack.png", dir));*/
