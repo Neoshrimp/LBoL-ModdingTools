@@ -1,0 +1,1 @@
+Adds `MODDED` text to top-right run info.
