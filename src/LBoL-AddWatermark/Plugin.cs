@@ -13,7 +13,7 @@ namespace AddWatermark
     [BepInProcess("LBoL.exe")]
     public class Plugin : BaseUnityPlugin
     {
-        public const string version = "1.0.0";
+        public const string version = "1.1.0";
 
         private static readonly Harmony harmony = new Harmony(API.GUID);
 
@@ -28,12 +28,9 @@ namespace AddWatermark
             gameObject.hideFlags = HideFlags.HideAndDontSave;
 
             harmony.PatchAll();
-
-
-            
         }
 
-            private void OnDestroy()
+        private void OnDestroy()
         {
             if (harmony != null)
                 harmony.UnpatchSelf();
@@ -108,13 +105,12 @@ namespace AddWatermark
 
                     watermarkRef = watermark;
 
-
-                    watermark.transform.localPosition = new Vector3(1800, topSiblingPos.Value - (infoCount * 50) - 25, 0);
+                    watermark.transform.position = Vector3.zero;
                     watermark.transform.SetAsLastSibling();
+                    watermark.transform.localPosition = new Vector3(-50, topSiblingPos.Value - (infoCount * 50) - 25, 0);
                 }
                 catch (Exception ex)
                 {
-
                     log.LogError(ex);
                 }
 

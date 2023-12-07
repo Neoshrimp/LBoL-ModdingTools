@@ -1331,6 +1331,22 @@ public class BuildAB
             scrollPool.Initialize(this);
 
         }
+		
+		
+		public static void DumpEnemyPools
+		{
+foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EnemyPoolAct1) Debug.Log(eg.Elem);
+Debug.Log("---------");
+foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EnemyPoolAct2) Debug.Log(eg.Elem);
+Debug.Log("---------");
+foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EnemyPoolAct3) Debug.Log(eg.Elem);
+Debug.Log("---------");
+
+foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EliteEnemyPool) Debug.Log(eg.Elem + " " + eg.Weight);
+
+
+			
+		}
 
 
     }
