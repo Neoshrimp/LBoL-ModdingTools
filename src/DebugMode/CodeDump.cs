@@ -1348,5 +1348,30 @@ foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EliteEnemyPool
 			
 		}
 
+/*                        watermark = new GameObject("watermark");
+                        watermark.SetActive(activateWatermark);
+                        watermark.transform.SetParent(Infos);
+                        var moddedText = watermark.AddComponent<TextMeshProUGUI>();
+
+
+                        // copy most of the component properties
+                        foreach (var p in AccessTools.GetDeclaredProperties(typeof(TMP_Text)))
+                        {
+                            if (p.CanWrite && !p.GetSetMethod().IsVirtual)
+                            {
+                                p.SetValue(moddedText, p.GetValue(__instance.gameVersion, null), null);
+                            }
+                        }
+
+                        foreach (var p in AccessTools.GetDeclaredProperties(typeof(TextMeshProUGUI)))
+                        {
+                            if (p.CanWrite)
+                            {
+                                p.SetValue(moddedText, p.GetValue(__instance.gameVersion, null), null);
+                            }
+                        }*/
+
 
     }
+	
+	

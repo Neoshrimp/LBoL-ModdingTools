@@ -13,7 +13,7 @@ namespace AddWatermark
     [BepInProcess("LBoL.exe")]
     public class Plugin : BaseUnityPlugin
     {
-        public const string version = "1.1.0";
+        public const string version = "1.1.1";
 
         private static readonly Harmony harmony = new Harmony(API.GUID);
 
@@ -50,7 +50,7 @@ namespace AddWatermark
             {
                 try
                 {
-                    var infoGoNames = new HashSet<string>() { "EAWarning", "Mode", "Version", "SeedButton" };
+                    //var infoGoNames = new HashSet<string>() { "EAWarning", "Mode", "Version", "SeedButton" };
 
                     var Infos = __instance.gameVersion.gameObject.transform.parent;
 
@@ -61,11 +61,13 @@ namespace AddWatermark
 
                     foreach (Transform c in Infos.transform)
                     {
-                        if (c.gameObject.activeSelf && infoGoNames.Contains(c.gameObject.name))
+                        if (c.gameObject.activeSelf && c.gameObject.name != "Hint")
                         {
                             infoCount++;
                             if (topSiblingPos == null)
+                            {
                                 topSiblingPos = c.localPosition.y;
+                            }
                         }
                         if (c.gameObject.name == "watermark")
                         {
@@ -75,39 +77,21 @@ namespace AddWatermark
 
                     if (watermark == null)
                     {
-                        watermark = new GameObject("watermark");
-                        watermark.SetActive(activateWatermark);
-                        watermark.transform.SetParent(Infos);
-
-                        var moddedText = watermark.AddComponent<TextMeshProUGUI>();
-
-                        // copy most of the component properties
-                        foreach (var p in AccessTools.GetDeclaredProperties(typeof(TMP_Text)))
-                        {
-                            if (p.CanWrite && !p.GetSetMethod().IsVirtual)
-                            {
-                                p.SetValue(moddedText, p.GetValue(__instance.gameVersion, null), null);
-                            }
-                        }
-
-                        foreach (var p in AccessTools.GetDeclaredProperties(typeof(TextMeshProUGUI)))
-                        {
-                            if (p.CanWrite)
-                            {
-                                p.SetValue(moddedText, p.GetValue(__instance.gameVersion, null), null);
-                            }
-                        }
-
+                        watermark = GameObject.Instantiate(__instance.gameVersion.gameObject, Infos.transform);
+                        watermark.name = "watermark";
+                        var moddedText = watermark.GetComponent<TextMeshProUGUI>();
 
                         moddedText.text = "MODDED";
-                        watermark.transform.localScale = new Vector3(1, 1, 1);
+
+                        watermark.transform.SetAsLastSibling();
+                        watermark.transform.localPosition = new Vector3(watermark.transform.localPosition.x, topSiblingPos.Value - (infoCount * 50), 0);
+
+                        watermark.SetActive(activateWatermark);
+
                     }
 
                     watermarkRef = watermark;
 
-                    watermark.transform.position = Vector3.zero;
-                    watermark.transform.SetAsLastSibling();
-                    watermark.transform.localPosition = new Vector3(-50, topSiblingPos.Value - (infoCount * 50) - 25, 0);
                 }
                 catch (Exception ex)
                 {
