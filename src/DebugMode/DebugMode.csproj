@@ -36,6 +36,9 @@
 
 
   <ItemGroup>
+    <Reference Include="LBoL-Entity-Sideloader">
+        <HintPath>$(BepInExFolder)\plugins\LBoL-Entity-Sideloader\LBoL-Entity-Sideloader.dll</HintPath>
+    </Reference>
     <Reference Include="LBoL.Base">
       <HintPath>$(GameFolder)\LBoL_Data\Managed\LBoL.Base.dll</HintPath>
     </Reference>
@@ -81,8 +84,17 @@
     <Reference Include="UnityEngine.ImageConversionModule">
         <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
-    <Reference Include="LBoL-Entity-Sideloader">
-        <HintPath>$(BepInExFolder)\plugins\LBoL-Entity-Sideloader\LBoL-Entity-Sideloader.dll</HintPath>
+    <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+        <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="YamlDotNet">
+        <HintPath>$(GameFolder)\LBoL_Data\Managed\YamlDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="YarnSpinner">
+        <HintPath>$(GameFolder)\LBoL_Data\Managed\YarnSpinner.dll</HintPath>
     </Reference>
   </ItemGroup>
 	

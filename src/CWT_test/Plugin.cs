@@ -66,6 +66,9 @@ public class ConditionalWeakTableTest
 
         public static IEnumerator Test()
         {
+            Plugin.log.LogInfo($"Starting CWT test..");
+
+
             object a = new object();
             object b = new object();
 
@@ -81,14 +84,10 @@ public class ConditionalWeakTableTest
             var wa = new System.WeakReference(a);
             var wb = new System.WeakReference(b);
 
-            Plugin.log.LogInfo(wa.IsAlive);
-            Plugin.log.LogInfo(wb.IsAlive);
 
             yield return null;
             Collect();
 
-            Plugin.log.LogInfo(wa.IsAlive);
-            Plugin.log.LogInfo(wb.IsAlive);
 
             b = null;
 
@@ -97,8 +96,6 @@ public class ConditionalWeakTableTest
                 yield return null;
                 Collect();
 
-                Plugin.log.LogInfo(wa.IsAlive);
-                Plugin.log.LogInfo(wb.IsAlive);
             }
 
             a = null;
