@@ -101,24 +101,29 @@ namespace DebugMode
             static EntityTypeCache entityTypeCache = null;
 
             static Button debugButton = null;
+            public const string debugButtonName = "DebugButton";
 
             [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
             [HarmonyPostfix]
             static void Awake_Postfix(SelectDebugPanel __instance)
             {
                 var buttonRootT = __instance.selectNormal.transform.parent;
-                var lastButtonT = buttonRootT.GetChild(buttonRootT.childCount - 1);
+                if (debugButton == null && buttonRootT.Find(debugButtonName) == null) 
+                {
+                    var lastButtonT = buttonRootT.GetChild(buttonRootT.childCount - 1);
 
-                debugButton = GameObject.Instantiate(__instance.selectNormal, buttonRootT);
-                debugButton.transform.SetAsLastSibling();
-                debugButton.transform.localPosition = lastButtonT.localPosition - new Vector3(0, 300, 0);
-                debugButton.onClick.RemoveAllListeners();
-                debugButton.enabled = true;
-                var tmGUI = debugButton.GetComponentInChildren<TextMeshProUGUI>();
-                if(tmGUI != null)
-                    tmGUI.text = "Debug";
+                    debugButton = GameObject.Instantiate(__instance.selectNormal, buttonRootT);
+                    debugButton.name = debugButtonName;
+                    debugButton.transform.SetAsLastSibling();
+                    debugButton.transform.localPosition = lastButtonT.localPosition - new Vector3(0, 300, 0);
+                    debugButton.onClick.RemoveAllListeners();
+                    debugButton.enabled = true;
+                    var tmGUI = debugButton.GetComponentInChildren<TextMeshProUGUI>();
+                    if(tmGUI != null)
+                        tmGUI.text = "Debug";
 
-                debugButton.onClick.AddListener(() => OnClickDebugButton(__instance));
+                    debugButton.onClick.AddListener(() => OnClickDebugButton(__instance));
+                }
             }
 
             static void OnClickDebugButton(SelectDebugPanel debugPanel)
