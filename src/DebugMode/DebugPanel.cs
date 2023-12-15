@@ -46,10 +46,8 @@ namespace DebugMode
 
 
 
-        internal class TypeCache
+        internal class EntityTypeCache
         {
-
-
             public HashSet<Type> cEx = new HashSet<Type>();
             public HashSet<Type> uEx = new HashSet<Type>();
             public HashSet<Type> rEx = new HashSet<Type>();
@@ -100,7 +98,40 @@ namespace DebugMode
         public class SelectDebugPanel_Patch
         {
 
-            static TypeCache typeCache = null;
+            static EntityTypeCache entityTypeCache = null;
+
+            static Button debugButton = null;
+
+            [HarmonyPatch(nameof(SelectDebugPanel.OnShowing))]
+            [HarmonyPostfix]
+            static void Awake_Postfix(SelectDebugPanel __instance)
+            {
+                var buttonRootT = __instance.selectNormal.transform.parent;
+                var lastButtonT = buttonRootT.GetChild(buttonRootT.childCount - 1);
+
+                debugButton = GameObject.Instantiate(__instance.selectNormal, buttonRootT);
+                debugButton.transform.SetAsLastSibling();
+                debugButton.transform.localPosition = lastButtonT.localPosition - new Vector3(0, 300, 0);
+                debugButton.onClick.RemoveAllListeners();
+                debugButton.enabled = true;
+                var tmGUI = debugButton.GetComponentInChildren<TextMeshProUGUI>();
+                if(tmGUI != null)
+                    tmGUI.text = "Debug";
+
+                debugButton.onClick.AddListener(() => OnClickDebugButton(__instance));
+            }
+
+            static void OnClickDebugButton(SelectDebugPanel debugPanel)
+            {
+                // this enum value is never checked for
+                debugPanel._selectionType = SelectDebugPanel.SelectionType.Adventure;
+                debugPanel.selectNormal.enabled = true;
+                debugPanel.selectRealName.enabled = true;
+                debugPanel.selectAdventure.enabled = true;
+                debugPanel.layout.DestroyChildren();
+                CreateDebugButtons(debugPanel);
+            }
+
 
 
 
@@ -109,58 +140,53 @@ namespace DebugMode
             static void OnShowing_Postfix()
             {
                 // clear cache
-                typeCache = new TypeCache();
-                typeCache.BuildCache();
+                entityTypeCache = new EntityTypeCache();
+                entityTypeCache.BuildCache();
 
             }
 
 
-            [HarmonyPatch(nameof(SelectDebugPanel.CreateEnemyButtons))]
-            [HarmonyPostfix]
-            static void CreateEnemyButtons_Postfix(SelectDebugPanel __instance)
+            static void CreateDebugButtons(SelectDebugPanel __instance)
             {
                 // panel with the most space
-                if (__instance._selectionType == SelectDebugPanel.SelectionType.RealName)
+
+                if (entityTypeCache == null)
                 {
-
-                    if (typeCache == null)
-                    {
-                        typeCache = new TypeCache();
-                        typeCache.BuildCache();
-                    }
-
-                    CreateButton(__instance, "Gimme Commons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyCommon))));
-                    CreateButton(__instance, "Gimme Uncommons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyUncommon))));
-                    CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
-
-                    CreateButton(__instance, "Gimme the rest", CoroutineWrapper(
-                        PoolCards(new CardWeightTable(RarityWeightTable.AllOnes, OwnerWeightTable.Valid,
-                        new CardTypeWeightTable(0f, 0f, 0f, 0f, 0f, 1f, 0f, 0f)
-                        ),
-                        false,
-                        typeCache.theRest)));
-
-
-                    CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(typeCache.cEx)));
-                    CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(typeCache.uEx)));
-                    CreateButton(__instance, "Gimme Rare Exhibits", CoroutineWrapper(PoolExhibits(typeCache.rEx)));
-                    CreateButton(__instance, "Gimme Mythics", CoroutineWrapper(PoolExhibits(typeCache.mEx)));
-                    CreateButton(__instance, "Gimme Shinnies", CoroutineWrapper(PoolExhibits(typeCache.sEx)));
-
-                    CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
-
-                    CreateButton(__instance, "Gimme Cash", () => {
-                        GameMaster.Instance?.CurrentGameRun.GainMoney(10000, false);
-                    });
-
-
-
-                    CreateButton(__instance, "Output All Config", async () => await OutputConfig());
-
-
-                    // not working..
-                    //CreateButton(__instance, "Screenshot Cards", CoroutineWrapper(ScreencapCards()));
+                    entityTypeCache = new EntityTypeCache();
+                    entityTypeCache.BuildCache();
                 }
+
+                CreateButton(__instance, "Gimme Commons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyCommon))));
+                CreateButton(__instance, "Gimme Uncommons", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyUncommon))));
+                CreateButton(__instance, "Gimme Rares", CoroutineWrapper(PoolCards(new CardWeightTable(RarityWeightTable.OnlyRare))));
+
+                CreateButton(__instance, "Gimme the rest", CoroutineWrapper(
+                    PoolCards(new CardWeightTable(RarityWeightTable.AllOnes, OwnerWeightTable.Valid,
+                    new CardTypeWeightTable(0f, 0f, 0f, 0f, 0f, 1f, 0f, 0f)
+                    ),
+                    false,
+                    entityTypeCache.theRest)));
+
+
+                CreateButton(__instance, "Gimme Common Exhibits", CoroutineWrapper(PoolExhibits(entityTypeCache.cEx)));
+                CreateButton(__instance, "Gimme Uncommon Exhibits", CoroutineWrapper(PoolExhibits(entityTypeCache.uEx)));
+                CreateButton(__instance, "Gimme Rare Exhibits", CoroutineWrapper(PoolExhibits(entityTypeCache.rEx)));
+                CreateButton(__instance, "Gimme Mythics", CoroutineWrapper(PoolExhibits(entityTypeCache.mEx)));
+                CreateButton(__instance, "Gimme Shinnies", CoroutineWrapper(PoolExhibits(entityTypeCache.sEx)));
+
+                CreateButton(__instance, "Remove Cards", CoroutineWrapper(RemoveCards()));
+
+                CreateButton(__instance, "Gimme Cash", () => {
+                    GameMaster.Instance?.CurrentGameRun.GainMoney(10000, false);
+                });
+
+
+
+                CreateButton(__instance, "Output All Config", async () => await OutputConfig());
+
+
+                // not working..
+                //CreateButton(__instance, "Screenshot Cards", CoroutineWrapper(ScreencapCards()));
 
 
             }
@@ -179,8 +205,8 @@ namespace DebugMode
                 // reset to make buttons clickable again
                 button.onClick.AddListener(delegate
                 {
-                    debugPanel.SelectAdventure();
-                    debugPanel.SelectRealName();
+                    //debugPanel.SelectAdventure();
+                    OnClickDebugButton(debugPanel);
                 });
 
                 button.gameObject.SetActive(true);
