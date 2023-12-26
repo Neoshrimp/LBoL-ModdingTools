@@ -1,4 +1,5 @@
 #### Quick Localization Reload
+[*Download*](https://raw.githubusercontent.com/Neoshrimp/LBoL-ModdingTools/master/src/QuickReloadLoc/QuickReloadLoc.dll)
 
 Adds button and hotkey (default: `L`, configurable in .cfg) for quickly reloading current localization.
 
