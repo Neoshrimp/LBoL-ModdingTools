@@ -1373,5 +1373,37 @@ foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EliteEnemyPool
 
 
     }
-	
+
+
+    [HarmonyPatch(typeof(TooltipsLayer), nameof(TooltipsLayer.InternalShowUltimateSkill))]
+    class AggroDebug_Patch
+    {
+
+        static void LogDebug(string s) => log.LogDebug(s);
+
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            int i = 0;
+            var ciList = instructions.ToList();
+            var c = ciList.Count();
+            CodeInstruction prevCi = null;
+            foreach (var ci in instructions)
+            {
+                if (true)
+                {
+                    yield return ci;
+                    yield return new CodeInstruction(OpCodes.Ldstr, ci.ToString());
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AggroDebug_Patch), "LogDebug"));
+
+                }
+                else
+                {
+                    yield return ci;
+                }
+                prevCi = ci;
+                i++;
+            }
+        }
+
+    }
 	
