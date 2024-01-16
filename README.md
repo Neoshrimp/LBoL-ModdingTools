@@ -5,6 +5,9 @@ Modding tools for Lost Branch of Legend
 
 #### [DebugMode](https://github.com/Neoshrimp/LBoL-ModdingTools/blob/master/src/DebugMode/DebugMode.dll)
 
+### Alpha branch in available with code `THRDBG20220728`
+It offers most up to date debug menus.
+
 # Press F5 in main menu to start a debug run!
 #### F4 while in battle to opens combat log.
 
