@@ -13,6 +13,8 @@ It offers most up to date debug menus.
 
 ![image](https://user-images.githubusercontent.com/89428565/236315259-4339e8f8-0ede-42b5-ab68-7dac289baeed.png)
 
+#### [Quick Loc Reload](https://github.com/Neoshrimp/LBoL-ModdingTools/tree/master/src/QuickReloadLoc)
+
 #### [Add watermark](https://github.com/Neoshrimp/LBoL-ModdingTools/tree/master/src/LBoL-AddWatermark)
 
 ---
