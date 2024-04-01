@@ -356,7 +356,12 @@ namespace DebugMode
                 if (gr == null)
                     yield break;
 
-                var cards = GameMaster.Instance.CurrentGameRun.CreateValidCardsPool(cardWeightTable, new ManaGroup?(gr.BaseMana), colorLimit, true)
+                var cards = GameMaster.Instance.CurrentGameRun.CreateValidCardsPool(
+                    weightTable: cardWeightTable,
+                    manaLimit: new ManaGroup?(gr.BaseMana),
+                    colorLimit: colorLimit,
+                    applyFactors: true,
+                    battleRolling: false)
                     .SelectMany(rpe => new Card[] { Library.CreateCard(rpe.Elem), Library.CreateCard(rpe.Elem) });
 
 
