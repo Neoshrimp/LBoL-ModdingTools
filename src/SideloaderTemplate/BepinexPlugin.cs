@@ -124,7 +124,7 @@ namespace SideloaderTemplate
     [BepInProcess("LBoL.exe")]
     public class BepinexPlugin : BaseUnityPlugin
     {
-
+        
         private static readonly Harmony harmony = SideloaderTemplate.PInfo.harmony;
 
         internal static BepInEx.Logging.ManualLogSource log;

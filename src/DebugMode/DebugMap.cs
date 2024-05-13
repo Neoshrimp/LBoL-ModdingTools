@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using LBoLEntitySideloader;
 
 namespace DebugMode
 {
@@ -40,8 +41,27 @@ namespace DebugMode
         [HarmonyPatch(typeof(BattleAdvTest), nameof(BattleAdvTest.CreateMap))]
         class BattleAdvTest_Patch
         {
+
+            static MethodInfo createRouteMethod;
+
+
             static bool Prefix(BattleAdvTest __instance, ref GameMap __result)
             {
+                if (createRouteMethod == null)
+                {
+                    try { createRouteMethod = AccessTools.Method(typeof(GameMap), "CreateMultiRoute"); }
+                    catch (Exception) {}
+                    try { createRouteMethod = AccessTools.Method(typeof(GameMap), "CreateFourRoute"); }
+                    catch (Exception) {}
+                }
+
+                if (createRouteMethod == null || !createRouteMethod.IsStatic || createRouteMethod.GetParameters().Length != 2)
+                {
+                    Plugin.log.LogError("Couldn't find appropriate game map creation method.");
+                    return true;
+                }
+
+
                 // for game loading
                 if (debugStations.Empty())
                 {
@@ -52,13 +72,11 @@ namespace DebugMode
                     {
                         seed = gr.RootSeed;
                     }
-
                     ShuffleStations(seed);
-
                 }
 
 
-                __result = GameMap.CreateMultiRoute(__instance.Boss.Id, debugStations.ToArray());
+                __result = (GameMap) createRouteMethod.Invoke(null, new object[] { __instance.Boss.Id, debugStations.ToArray()});
 
                 return false;
             }
