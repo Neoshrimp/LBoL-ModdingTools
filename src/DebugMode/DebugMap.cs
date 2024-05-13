@@ -55,9 +55,17 @@ namespace DebugMode
                     catch (Exception) {}
                 }
 
-                if (createRouteMethod == null || !createRouteMethod.IsStatic || createRouteMethod.GetParameters().Length != 2)
+                var error = createRouteMethod switch
                 {
-                    Plugin.log.LogError("Couldn't find appropriate game map creation method.");
+                    null => "Method not found (methodInfo is null).",
+                    _ when !createRouteMethod.IsStatic => "Found method is not static",
+                    _ when createRouteMethod.GetParameters().Length != 2 => "Found method must have exactly two parameters.",
+                    _ => null
+                };
+
+                if (error != null)
+                {
+                    Plugin.log.LogError(error);
                     return true;
                 }
 
