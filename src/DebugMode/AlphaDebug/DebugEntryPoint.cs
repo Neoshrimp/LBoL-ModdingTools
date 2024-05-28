@@ -17,7 +17,7 @@ namespace DebugMode.AlphaDebug
         {
             if (gameMasterT.Find(goName) == null)
             {
-                var go = Utils.CreateGameObject(gameMasterT, goName);
+                var go = LBoL.Core.Utils.CreateGameObject(gameMasterT, goName);
 
                 go.AddComponent<DebugMode.AlphaDebug.GameDebugMenuUI>();
                 go.AddComponent<DebugMode.AlphaDebug.GameConsoleUI>();

@@ -34,6 +34,7 @@ using System.Threading;
 using static LBoL.Core.CrossPlatformHelper;
 using System.Net.NetworkInformation;
 using static DebugMode.Plugin;
+using LBoL.Presentation.Units;
 
 namespace DebugMode
 {
@@ -49,6 +50,7 @@ namespace DebugMode
         internal static BepInEx.Logging.ManualLogSource log;
 
         public static ConfigEntry<KeyboardShortcut> StartDebugRunKey;
+        public static ConfigEntry<KeyboardShortcut> RestartRunKey;
         public static ConfigEntry<KeyboardShortcut> BattleLog;
         // alpha only
         public static ConfigEntry<KeyboardShortcut> DevConsole;
@@ -66,6 +68,7 @@ namespace DebugMode
             DevConsole = Config.Bind("Keys", "DevConsole", new KeyboardShortcut(KeyCode.F2), new ConfigDescription(@"DevConsole. Use ""help"" command to list available commands. Alpha only."));
             DebugMenu = Config.Bind("Keys", "DebugMenu", new KeyboardShortcut(KeyCode.F3), new ConfigDescription("DebugMenu. Opens different menu depending whether player is in mainmenu, battle or gamemap. Alpha only :("));
 
+            RestartRunKey = Config.Bind("Keys", "RestartRun", new KeyboardShortcut(KeyCode.F8), "Restart current run with the same seed and character. Does not respect custom loadouts.");
 
 
             // very important. Without it the entry point MonoBehaviour gets destroyed
@@ -109,6 +112,58 @@ namespace DebugMode
                     log.LogInfo("Run has already been started.");
                 }
 
+            }
+
+            if (RestartRunKey.Value.IsDown())
+            {
+                var gr = GameMaster.Instance?.CurrentGameRun;
+                if (gr != null)
+                {
+                    var seed = gr.RootSeed;
+                    var difficulty = gr.Difficulty;
+                    var puzzles = gr.Puzzles;
+                    var oldPlayer = gr.Player;
+                    var newPlayer = Library.CreatePlayerUnit(oldPlayer.GetType());
+                    newPlayer.SetUs(Library.CreateUs(oldPlayer.Us.GetType()));
+                    var playerType = gr.PlayerType; // 2do does not respect custom loadouts
+                    var exhibitId = "";
+                    var startingDeck = new List<string>();
+                    switch (playerType)
+                    {
+                        case LBoL.Core.Units.PlayerType.TypeA:
+                            exhibitId = oldPlayer.Config.ExhibitA;
+                            startingDeck.AddRange(oldPlayer.Config.DeckA);
+                            break;
+                        case LBoL.Core.Units.PlayerType.TypeB:
+                            exhibitId = oldPlayer.Config.ExhibitB;
+                            startingDeck.AddRange(oldPlayer.Config.DeckB);
+                            break;
+                        default:
+                            break;
+                    }
+                    var stages = gr.Stages.Select(s => Library.CreateStage(s.GetType()));
+                    var jadeboxes = gr.JadeBoxes;
+                    var revealFate = gr.ShowRandomResult;
+
+
+                    Utils.InstaAbandonGamerun();
+
+
+                    GameMaster.StartGame(
+                        seed: seed,
+                        difficulty: difficulty,
+                        puzzles: puzzles,
+                        player: newPlayer,
+                        playerType: playerType,
+                        initExhibit: Library.CreateExhibit(exhibitId),
+                        initMoneyOverride: null,
+                        deck: startingDeck.Select(s => Library.CreateCard(s)),
+                        stages: stages,
+                        debutAdventureType: typeof(Debut),
+                        jadeBoxes: jadeboxes,
+                        gameMode: GameMode.FreeMode,
+                        showRandomResult: revealFate);
+                }
             }
         }
 
