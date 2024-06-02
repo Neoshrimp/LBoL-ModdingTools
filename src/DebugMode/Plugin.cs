@@ -43,7 +43,7 @@ namespace DebugMode
     public class Plugin : BaseUnityPlugin
     {
         public const string GUID = "neo.lbol.debugMode";
-        public const string version = "0.8.0";
+        public const string version = "1.0.1";
 
         private static readonly Harmony harmony = new Harmony(GUID);
 
@@ -142,7 +142,7 @@ namespace DebugMode
                             break;
                     }
                     var stages = gr.Stages.Select(s => Library.CreateStage(s.GetType()));
-                    var jadeboxes = gr.JadeBoxes;
+                    var jadeboxes = gr.JadeBoxes.Select(jb => Library.CreateJadeBox(jb.GetType()));
                     var revealFate = gr.ShowRandomResult;
 
 
