@@ -47,13 +47,18 @@ namespace DebugMode
 
             static bool Prefix(BattleAdvTest __instance, ref GameMap __result)
             {
+
                 if (createRouteMethod == null)
                 {
+                    try { createRouteMethod = AccessTools.Method(typeof(GameMap), "CreateFourRoute"); }
+                    catch (Exception) { }
+                }
+                if (createRouteMethod == null)
+                { 
                     try { createRouteMethod = AccessTools.Method(typeof(GameMap), "CreateMultiRoute"); }
                     catch (Exception) {}
-                    try { createRouteMethod = AccessTools.Method(typeof(GameMap), "CreateFourRoute"); }
-                    catch (Exception) {}
                 }
+
 
                 var error = createRouteMethod switch
                 {

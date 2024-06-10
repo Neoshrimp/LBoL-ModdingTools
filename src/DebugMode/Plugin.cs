@@ -40,6 +40,7 @@ namespace DebugMode
 {
     [BepInPlugin(GUID, "Debug Mode", version)]
     [BepInProcess("LBoL.exe")]
+    [BepInDependency("neo.lbol.frameworks.entitySideloader", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         public const string GUID = "neo.lbol.debugMode";
