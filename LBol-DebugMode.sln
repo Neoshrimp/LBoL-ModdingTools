@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CWT_test", "src\CWT_test\CW
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSteam", "src\NoSteam\NoSteam.csproj", "{E2B5AD21-60CB-4C69-9471-877770D43480}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickReloadLoc", "src\QuickReloadLoc\QuickReloadLoc.csproj", "{1309E5F7-1A4C-4698-A5B3-5E7D2061758A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickReloadLoc", "src\QuickReloadLoc\QuickReloadLoc.csproj", "{1309E5F7-1A4C-4698-A5B3-5E7D2061758A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "src\Logging\Logging.csproj", "{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{1309E5F7-1A4C-4698-A5B3-5E7D2061758A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1309E5F7-1A4C-4698-A5B3-5E7D2061758A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1309E5F7-1A4C-4698-A5B3-5E7D2061758A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
