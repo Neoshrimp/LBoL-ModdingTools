@@ -16,26 +16,33 @@ namespace Logging
 
         private static readonly string SessionFolder = $"_{DateTime.Now:yyyy-MM-dd_HH.mm.ss}";
 
+        
 
         private readonly FileStream _fileStream;
         private readonly StreamWriter _streamWriter;
         private readonly object lockObj = new object();
 
-        private readonly string logFile;
+        public readonly string logFile;
+        public readonly string subFolder;
+        public readonly string fileDir;
         private List<string> values = new List<string>();
 
         public List<string> Values { get => values; set => values = value; }
 
-        private CsvLogger(string logFile, string ext = ".csv")
+
+        private CsvLogger(string logFile, string ext = ".csv", string subFolder = "")
         {
             this.logFile = logFile + ext;
-            Directory.CreateDirectory(Path.Join(Application.persistentDataPath, SessionFolder));
-            string filePath = Path.Join(Application.persistentDataPath, SessionFolder, this.logFile);
+            this.subFolder = subFolder;
+            fileDir = Path.Join(Application.persistentDataPath, subFolder, SessionFolder);
+            Directory.CreateDirectory(fileDir);
+            string filePath = Path.Join(fileDir, this.logFile);
             _fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
             _streamWriter = new StreamWriter(_fileStream);
+            this.subFolder = subFolder;
         }
 
-        public static CsvLogger GetOrCreateLog(string logFile, string ext = ".csv")
+        public static CsvLogger GetOrCreateLog(string logFile, string ext = ".csv", string subFolder = "")
         {
             if (!loggers.TryGetValue(logFile, out CsvLogger logger))
             {
