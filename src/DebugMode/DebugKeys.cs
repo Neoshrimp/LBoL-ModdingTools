@@ -1,8 +1,11 @@
-﻿using HarmonyLib;
+﻿using BepInEx.Configuration;
+using HarmonyLib;
 using LBoL.Presentation.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using static DebugMode.Plugin;
 
@@ -29,6 +32,7 @@ namespace DebugMode
                 if (__instance.DebugMenuAction != null)
                 {
                     __instance.DebugMenuAction.ApplyBindingOverride("<Keyboard>/" + DebugMenu.Value);
+                    __instance.DebugMenuAction.AddBinding("<Mouse>/middleButton");
                     log.LogInfo(__instance.DebugMenuAction);
                 }
 
