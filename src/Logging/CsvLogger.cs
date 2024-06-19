@@ -14,7 +14,6 @@ namespace Logging
 
     public sealed class CsvLogger : IDisposable
     {
-        // 
         private static readonly Dictionary<string, CsvLogger> loggers = new Dictionary<string, CsvLogger>();
 
         private static readonly string SessionFolder = $"_{DateTime.Now:yyyy-MM-dd_HH.mm.ss}";
@@ -50,7 +49,7 @@ namespace Logging
 
         public bool IsEnabled { get => isEnabled; set => isEnabled = value; }
 
-        private CsvLogger(string logFile, string ext = ".csv", string subFolder = "")
+        private CsvLogger(string logFile, string ext = ".csv", string subFolder = "", bool isEnabled = true)
         {
             this.logFile = logFile + ext;
             this.subFolder = subFolder;
@@ -60,28 +59,31 @@ namespace Logging
             _fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
             _streamWriter = new StreamWriter(_fileStream);
             this.subFolder = subFolder;
+            this.isEnabled = isEnabled;
         }
 
-        public static CsvLogger GetOrCreateLog(string logFile, object ass, string ext = ".csv", string subFolder = "", bool isEnabled = true)
+        public static (CsvLogger, long) GetOrCreateLog(string logFile, object ass, string ext = ".csv", string subFolder = "", bool isEnabled = true)
         {
-            
             var assId = objectAssociations.GetId(ass, out var firstTime);
             if (firstTime) assCount++;
-            var fileId = logFile + assId.ToString();;
+            var fileId = logFile + assId.ToString();
             if (!loggers.TryGetValue(fileId, out CsvLogger logger))
             {
-                logger = new CsvLogger(logFile + "_" + assCount.ToString(), ext, subFolder);
+                logger = new CsvLogger(logFile + "_" + assCount.ToString(), ext, subFolder, isEnabled);
                 loggers[fileId] = logger;
-                logger.isEnabled = isEnabled;
             }
-            return logger;
+            return (logger, assId);
         }
 
 
-        public static CsvLogger L(string logFile, string ext = ".csv") => GetOrCreateLog(logFile, ext);
+        public static CsvLogger L(string logFile, string ext = ".csv") => GetOrCreateLog(logFile, ext).Item1;
 
-        public static bool TryGetLogger(string logFile, out CsvLogger logger) => loggers.TryGetValue(logFile, out logger);
-
+        public static bool TryGetLogger(string loggerId, out CsvLogger logger)
+        {
+            logger = null;
+            if (string.IsNullOrEmpty(loggerId)) return false;
+            return loggers.TryGetValue(loggerId, out logger);
+        }
 
         public void AddHeaderVal(string valKey)
         {
