@@ -62,28 +62,27 @@ namespace Logging
             this.isEnabled = isEnabled;
         }
 
-        public static (CsvLogger, long) GetOrCreateLog(string logFile, object ass, string ext = ".csv", string subFolder = "", bool isEnabled = true)
+        public static CsvLogger GetOrCreateLog(string logFile, string id, string ext = ".csv", string subFolder = "", bool isEnabled = true)
         {
-            var assId = objectAssociations.GetId(ass, out var firstTime);
-            if (firstTime) assCount++;
-            var fileId = logFile + assId.ToString();
+            var fileId = logFile + id;
             if (!loggers.TryGetValue(fileId, out CsvLogger logger))
             {
                 logger = new CsvLogger(logFile + "_" + assCount.ToString(), ext, subFolder, isEnabled);
                 loggers[fileId] = logger;
             }
-            return (logger, assId);
+            return logger;
         }
 
-
-        public static CsvLogger L(string logFile, string ext = ".csv") => GetOrCreateLog(logFile, ext).Item1;
-
-        public static bool TryGetLogger(string loggerId, out CsvLogger logger)
+        public static (CsvLogger, long) GetOrCreateLog(string logFile, object ass, string ext = ".csv", string subFolder = "", bool isEnabled = true)
         {
-            logger = null;
-            if (string.IsNullOrEmpty(loggerId)) return false;
-            return loggers.TryGetValue(loggerId, out logger);
+            var assId = objectAssociations.GetId(ass, out var firstTime);
+            if (firstTime) assCount++;
+            var log = GetOrCreateLog(logFile, assId.ToString(), ext, subFolder, isEnabled);
+            return (log, assId);
         }
+
+
+
 
         public void AddHeaderVal(string valKey)
         {
