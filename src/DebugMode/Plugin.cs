@@ -64,10 +64,10 @@ namespace DebugMode
 
             StartDebugRunKey = Config.Bind("Keys", "StartDebugRunKey", new KeyboardShortcut(KeyCode.F5), new ConfigDescription("Starts a run with special debug map nodes. Only works if not in run."));
 
-            BattleLog = Config.Bind("Keys", "BattleLog", new KeyboardShortcut(KeyCode.F4), new ConfigDescription("BattleLog (only in battle)"));
+            BattleLog = Config.Bind("Keys", "BattleLog", new KeyboardShortcut(KeyCode.F3), new ConfigDescription("BattleLog (only in battle)"));
 
             DevConsole = Config.Bind("Keys", "DevConsole", new KeyboardShortcut(KeyCode.F2), new ConfigDescription(@"DevConsole. Use ""help"" command to list available commands. Alpha only."));
-            DebugMenu = Config.Bind("Keys", "DebugMenu", new KeyboardShortcut(KeyCode.F3), new ConfigDescription("DebugMenu. Opens different menu depending whether player is in mainmenu, battle or gamemap. Alpha only :("));
+            DebugMenu = Config.Bind("Keys", "DebugMenu", new KeyboardShortcut(KeyCode.F4), new ConfigDescription("DebugMenu. Opens different menu depending whether player is in mainmenu, battle or gamemap. Alpha only :("));
 
             RestartRunKey = Config.Bind("Keys", "RestartRun", new KeyboardShortcut(KeyCode.F8), "Restart current run with the same seed and character. Does not respect custom loadouts.");
 

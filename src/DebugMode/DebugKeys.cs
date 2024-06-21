@@ -23,10 +23,10 @@ namespace DebugMode
                 var debugInputActionMap = __instance.inputActions.FindActionMap("Debug", false);
                 debugInputActionMap?.Enable();
 
-                if (__instance.DebugBattleLogAction != null)
+                if (__instance.BattleLog != null)
                 { 
-                    __instance.DebugBattleLogAction.ApplyBindingOverride("<Keyboard>/" + BattleLog.Value);
-                    log.LogInfo(__instance.DebugBattleLogAction);
+                    __instance.BattleLog.ApplyBindingOverride("<Keyboard>/" + BattleLog.Value);
+                    log.LogInfo(__instance.BattleLog);
                 }
 
                 if (__instance.DebugMenuAction != null)
