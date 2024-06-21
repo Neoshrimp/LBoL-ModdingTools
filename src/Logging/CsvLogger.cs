@@ -32,11 +32,15 @@ namespace Logging
 
         private List<string> header = new List<string>();
         private Dictionary<string, string> values = new Dictionary<string, string>();
+        // key => isConditional
+        private Dictionary<string, bool> valsToSanitize = new Dictionary<string, bool>();
         private string emptyValue = "N/A";
 
         public static int AssCount { get => assCount; }
         public IReadOnlyList<string> Header { get => header; }
         public IReadOnlyDictionary<string, string> Values { get => values; }
+        public IReadOnlyDictionary<string, bool> ValsToSanitize { get => valsToSanitize; }
+
         public string EmptyValue 
         {
             get => emptyValue; 
@@ -136,14 +140,34 @@ namespace Logging
             var i = 0;
             foreach (var k in header)
             {
-                toLog[i] = values[k];
+                var val = values[k];
+                if (valsToSanitize.TryGetValue(k, out var condSan))
+                     val = SanitizeVal(val, condSan);
+                toLog[i] = val;
                 values[k] = emptyValue;
                 i++;
             }
             Log(toLog);
         }
 
-        public void Log(IEnumerable<object> values) => Log(String.Join(", ", values));
+        public bool SetCollumnToSanitize(string key, bool conditional = true)
+        {
+            if (!values.ContainsKey(key))
+                return false;
+            if(!valsToSanitize.TryAdd(key, conditional))
+                valsToSanitize[key] = conditional;
+            return true;
+        }
+
+        public static string SanitizeVal(string val, bool conditional) 
+        {
+            var doSan = true;
+            if (conditional)
+                doSan = val.Contains(",");
+            return doSan ? $"\"{val}\"" : val;
+        }
+
+        public void Log(IEnumerable<object> values) => Log(string.Join(", ", values));
 
         public void Log(string message)
         {
