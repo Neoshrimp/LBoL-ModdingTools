@@ -71,8 +71,7 @@ namespace Logging
             var fileId = logFile + id;
             if (!loggers.TryGetValue(fileId, out CsvLogger logger))
             {
-                // loading + restart idk
-                logger = new CsvLogger(logFile + "_" + Math.Max(1, assCount).ToString(), ext, subFolder, isEnabled);
+                logger = new CsvLogger(logFile + "_" + assCount.ToString(), ext, subFolder, isEnabled);
                 loggers[fileId] = logger;
             }
             return logger;
