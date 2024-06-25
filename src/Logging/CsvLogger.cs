@@ -53,7 +53,7 @@ namespace Logging
 
         public bool IsEnabled { get => isEnabled; set => isEnabled = value; }
 
-        private CsvLogger(string logFile, string ext = ".csv", string subFolder = "", bool isEnabled = true)
+        public CsvLogger(string logFile, string ext = ".csv", string subFolder = "", bool isEnabled = true)
         {
             this.logFile = logFile + ext;
             this.subFolder = subFolder;
