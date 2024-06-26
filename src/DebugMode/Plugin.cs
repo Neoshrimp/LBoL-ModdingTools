@@ -44,7 +44,7 @@ namespace DebugMode
     public class Plugin : BaseUnityPlugin
     {
         public const string GUID = "neo.lbol.debugMode";
-        public const string version = "1.0.1";
+        public const string version = "1.1.0";
 
         private static readonly Harmony harmony = new Harmony(GUID);
 

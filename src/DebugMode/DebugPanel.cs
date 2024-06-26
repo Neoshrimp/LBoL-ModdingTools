@@ -28,6 +28,7 @@ using UnityEngine.UI;
 using static DebugMode.Plugin;
 using LBoLEntitySideloader.UIhelpers;
 using LBoL.Base.Extensions;
+using Newtonsoft.Json;
 
 namespace DebugMode
 {
@@ -188,6 +189,15 @@ namespace DebugMode
 
 
                 CreateButton(__instance, "Output All Config", async () => await OutputConfig());
+
+
+                var yamlDump = new DumpConfigData();
+                CreateButton(__instance, "Dump config yaml", () => yamlDump.DumpYaml());
+
+                var jsomDump = new DumpConfigData();
+                CreateButton(__instance, "Dump config json", () => jsomDump.DumpJson());
+
+
 
 
                 // not working..
