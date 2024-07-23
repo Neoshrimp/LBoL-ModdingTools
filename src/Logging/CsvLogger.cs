@@ -55,9 +55,11 @@ namespace Logging
 
         public CsvLogger(string logFile, string ext = ".csv", string subFolder = "", bool isEnabled = true)
         {
+            
             this.logFile = logFile + ext;
             this.subFolder = subFolder;
-            fileDir = Path.Join(Application.persistentDataPath, subFolder, SessionFolder);
+            fileDir = Path.Join(Application.dataPath, "..");
+            fileDir = Path.Join(fileDir, subFolder, SessionFolder);
             Directory.CreateDirectory(fileDir);
             string filePath = Path.Join(fileDir, this.logFile);
             _fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);

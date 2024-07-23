@@ -1434,3 +1434,31 @@ foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EliteEnemyPool
         }
     }
 	
+	                //var cType = InfiteDeck.Sample(slotRng);
+                /*                Type cType = null;
+                                SamplerLogInfo logInfo = null;
+                                if (potentialCards.Count == 1)
+                                    cType = potentialCards.CountedPool.Keys.First();
+                                else
+                                    cType = infiniteShufflingDeck[isd];*/
+
+
+
+/*                int shuffleIndex = slotRng.NextInt(0, infiniteCount);
+
+                Type toSwap = infiniteShufflingDeck[infiniteCount];
+                Type cType = infiniteShufflingDeck[shuffleIndex];
+                infiniteShufflingDeck[infiniteCount] = cType;
+                infiniteShufflingDeck[shuffleIndex] = toSwap;
+                infiniteCount--;*/
+				
+/*            var st = new StackTrace();
+
+            log.LogDebug($"---------------");
+            foreach (var f in st.GetFrames())
+            {
+                log.LogDebug($"{f.GetMethod().DeclaringType.FullName}::{f.GetMethod().Name}");
+            }
+            log.LogDebug($"---------------");*/
+				
+				

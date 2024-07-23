@@ -58,6 +58,10 @@ namespace DebugMode
         public static ConfigEntry<KeyboardShortcut> DebugMenu;
 
 
+
+
+
+
         private void Awake()
         {
             log = Logger;
