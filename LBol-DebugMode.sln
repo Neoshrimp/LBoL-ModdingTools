@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSteam", "src\NoSteam\NoSt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickReloadLoc", "src\QuickReloadLoc\QuickReloadLoc.csproj", "{1309E5F7-1A4C-4698-A5B3-5E7D2061758A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "src\Logging\Logging.csproj", "{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging", "src\Logging\Logging.csproj", "{DE4C62B8-DF6A-424F-9D77-B870A99A8FA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

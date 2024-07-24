@@ -25,12 +25,12 @@ namespace SideloaderTemplate
 
         public override LocalizationOption LoadLocalization()
         {
-            return null;    
+            return cardBatchLoc.AddEntity(this);
         }
 
         public override CardConfig MakeConfig()
         {
-            return null;
+            return this.DefaultConfig();
         }
 
         [EntityLogic(typeof(ExampleCardDefinition))]
