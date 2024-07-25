@@ -1,6 +1,8 @@
 # LBoL-ModdingTools
 Modding tools for Lost Branch of Legend
 
+#### [Example project/template](https://gitlab.com/rmrfmaxxc1/lbol_sample_character_mod) by rmrfmaxxc. The intended way to organize Sidloader templates for larger projects, i.e., new characters.
+
 #### [Sideloader template](https://github.com/Neoshrimp/LBoL-ModdingTools/tree/master/src/SideloaderTemplate)
 
 #### [DebugMode](https://github.com/Neoshrimp/LBoL-ModdingTools/blob/master/src/DebugMode/DebugMode.dll)
