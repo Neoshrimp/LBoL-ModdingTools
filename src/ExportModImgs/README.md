@@ -1,1 +1,1 @@
-exports more than images
+can export more than images
