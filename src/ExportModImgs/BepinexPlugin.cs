@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using ExportModImgs.Exporters;
 using HarmonyLib;
 using LBoLEntitySideloader;
 using LBoLEntitySideloader.Entities;
@@ -33,10 +34,10 @@ namespace ExportModImgs
 
             harmony.PatchAll();
 
-            var exporter = new Exporter() {
+            var texExporter = new TexExporter() {
                 addTimeStamp = true
             };
-            exporter.HookSelf();
+            texExporter.HookSelf();
 
         }
 

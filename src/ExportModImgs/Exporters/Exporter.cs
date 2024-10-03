@@ -14,9 +14,9 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace ExportModImgs
+namespace ExportModImgs.Exporters
 {
-    public class Exporter : IExPathProvider, IModSubDirProvider
+    public class Exporter<T> where T : class
     {
         // add guid here
         public List<string> targetGUIDs = new List<string>() {
@@ -30,13 +30,10 @@ namespace ExportModImgs
             "aqing0601.PKaguya.trial"
         };
 
-
-        public HashSet<Type> targetEntityTypes = new HashSet<Type>() {
-            typeof(Card),
-            typeof(StatusEffect),
-            typeof(Exhibit),
-        };
-
+        /// <summary>
+        /// template type => IDefinitionConsumer
+        /// </summary>
+        public Dictionary<Type, IDefinitionConsumer<T>> definitionConsumers = null;
         public bool addTimeStamp = true;
 
         public readonly string rootFolder = "ImgExporter";
@@ -48,14 +45,17 @@ namespace ExportModImgs
 
         public IModSubDirProvider modSubDir;
 
+        public IPostConsume<T> postProcess = new EmptyPostConsume<T>();
+
         public Exporter(string rootPath = "", string rootFolder = "ImgExporter")
         {
-            exPathProvider = this;
-            modSubDir = this;
+            var exPathImpl = new ExPathImpl();
+            exPathProvider = exPathImpl;
+            modSubDir = exPathImpl;
             this.rootPath = rootPath;
             if (string.IsNullOrEmpty(this.rootPath))
                 this.rootPath = Path.Join(Application.dataPath, "..");
-            if(rootFolder != null)
+            if (rootFolder != null)
                 this.rootFolder = rootFolder;
 
             this.rootPath = Path.Join(rootPath, rootFolder);
@@ -76,14 +76,14 @@ namespace ExportModImgs
             {
                 Log.LogInfo($"Exporting {guid}...");
                 try
-                { 
+                {
                     Export(guid, suffix);
                 }
                 catch (Exception ex)
                 {
                     Log.LogError(ex);
                 }
-                Log.LogInfo($"Done exporting {guid}!");
+                Log.LogDebug($"Done exporting {guid}!");
             }
         }
 
@@ -103,66 +103,68 @@ namespace ExportModImgs
                 return;
             }
 
+            if (userInfo?.definitionInstances == null)
+            {
+                Log.LogWarning($"Mod with {guid} was probably hot loaded. Aborting.");
+                return;
+            }
 
-            var exportRoot = this.rootPath;
+
+            var exportRoot = rootPath;
             exportRoot = $"{exportRoot}{suffix}";
             exportRoot = Path.Join(exportRoot, Source.LegalizeFileName(modSubDir.ModDir(pluginInfo)));
 
 
-            // not inited for mods from scripts folder?
             foreach (var ed in userInfo.definitionInstances.Values)
             {
+                //potential sideloader jank?
                 if (ed == null)
                     continue;
-                // sideloader jank
-                try
-                {
-                    if (!targetEntityTypes.Contains(ed.EntityType()))
-                        continue;
-                }
-                catch (InvalidDataException)
-                {
+
+                var templateType = ed.TemplateType();
+
+                if (!definitionConsumers.TryGetValue(templateType, out var definitionConsumer))
                     continue;
-                }
+
 
                 var exportPath = Path.Join(exportRoot, exPathProvider.ExSubDirs(ed));
 
                 Directory.CreateDirectory(exportPath);
 
 
-                Texture2D tex = null;
+                T exTarget = definitionConsumer.Consume(ed);
 
-                if (ed is CardTemplate ct)
-                {
-                    tex = ct.LoadCardImages()?.main;
-                }
-                else if (ed is ExhibitTemplate ext)
-                {
-                    tex = ext.LoadSprite()?.main?.texture;
-                }
-                else if (ed is StatusEffectTemplate set)
-                {
-                    tex = set.LoadSprite()?.texture;
-                }
 
-                if (tex == null)
+                if (exTarget == null)
                     continue;
-                var texBytes = ImageConversion.EncodeToPNG(tex);
-                var path = Path.Join(exportPath, Source.LegalizeFileName(exPathProvider.ExportFilePrefix(ed)) + ".png");
-                File.WriteAllBytes(path, texBytes);
+
+                var path = Path.Join(exportPath, Source.LegalizeFileName(exPathProvider.ExportFilePrefix(ed)));
+
+                postProcess.Process(exTarget, path);
+
             }
-
-            
-
-
-
 
         }
 
 
+
+    }
+
+
+    public class ExPathImpl : IExPathProvider, IModSubDirProvider
+    {
         public string ExSubDirs(EntityDefinition entityDefinition)
         {
-            return entityDefinition.EntityType().Name;
+            var rez = entityDefinition.TemplateType().Name;
+            // suboptmal sideloader api, not all definition have entity types
+            try
+            {
+                rez = entityDefinition.EntityType().Name;
+            }
+            catch (InvalidDataException)
+            { }
+            return rez;
+
         }
 
         public string ExportFilePrefix(EntityDefinition entityDefinition)
@@ -172,10 +174,9 @@ namespace ExportModImgs
 
         public string ModDir(BepInEx.PluginInfo pluginInfo)
         {
-            
+
             return pluginInfo.Metadata.GUID;
         }
     }
-
 
 }
