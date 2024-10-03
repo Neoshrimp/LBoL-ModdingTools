@@ -1460,5 +1460,9 @@ foreach(var eg in GameMaster.Instance.CurrentGameRun.CurrentStage.EliteEnemyPool
                 log.LogDebug($"{f.GetMethod().DeclaringType.FullName}::{f.GetMethod().Name}");
             }
             log.LogDebug($"---------------");*/
+			
+//string.Join("; ", CardConfig.AllConfig().GroupBy(cc => cc.Rarity).Select(g => $"{g.Key}: {g.Count()}"));
+
+			
 				
 				
