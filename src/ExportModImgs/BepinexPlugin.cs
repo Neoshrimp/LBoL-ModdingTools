@@ -35,7 +35,8 @@ namespace ExportModImgs
             harmony.PatchAll();
 
             new TexExporter().HookSelf();
-            new UpgradedImgExporter().HookSelf();
+            // unneeded
+            //new UpgradedImgExporter().HookSelf();
             new ConfigExporter().HookSelf();
             new LocExporter().HookSelf();
 
