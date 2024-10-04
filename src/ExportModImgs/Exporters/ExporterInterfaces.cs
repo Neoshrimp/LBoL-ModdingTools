@@ -3,13 +3,29 @@ using LBoLEntitySideloader;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace ExportModImgs.Exporters
 {
 
-    public interface IDefinitionConsumer<out T> where T : class
+    public interface IExportProvider<out T> where T : class
     {
-        public T Consume(EntityDefinition entityDefinition);
+        public T Provide(EntityDefinition entityDefinition);
+    }
+
+    public class DefinitionConsumer<T> : IExportProvider<T> where T : class
+    {
+        Func<EntityDefinition, T> provide;
+
+        public DefinitionConsumer(Func<EntityDefinition, T> provide)
+        {
+            this.provide = provide;
+        }
+
+        public T Provide(EntityDefinition entityDefinition)
+        {
+            return provide(entityDefinition);
+        }
     }
 
 

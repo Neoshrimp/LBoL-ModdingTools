@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using static ExportModImgs.Exporters.TexExporter;
 
 namespace ExportModImgs.Exporters
 {
@@ -13,10 +13,13 @@ namespace ExportModImgs.Exporters
     {
         public TexExporter() : base()
         {
-            definitionConsumers = new Dictionary<Type, IDefinitionConsumer<Texture2D>>() {
+
+            rootFolder = Path.Join(rootFolder, "Imgs");
+            definitionConsumers = new Dictionary<Type, IExportProvider<Texture2D>>() {
                 [typeof(CardTemplate)] = new CardTex(),
                 [typeof(ExhibitTemplate)] = new ExTex(),
                 [typeof(StatusEffectTemplate)] = new SeTex(),
+                [typeof(UltimateSkillTemplate)] = new DefinitionConsumer<Texture2D>(ed => (ed as UltimateSkillTemplate)?.LoadSprite()?.texture)
             };
             postProcess = new TexExport();
         }
@@ -32,9 +35,9 @@ namespace ExportModImgs.Exporters
 
         static void TypeWarning(EntityDefinition ed, string correctType) => Log.LogWarning($"{ed.GetType()} is not {correctType}");
 
-        public class CardTex : IDefinitionConsumer<Texture2D>
+        public class CardTex : IExportProvider<Texture2D>
         {
-            public Texture2D Consume(EntityDefinition entityDefinition)
+            public Texture2D Provide(EntityDefinition entityDefinition)
             {
                 if (entityDefinition is CardTemplate ct)
                 {
@@ -45,9 +48,9 @@ namespace ExportModImgs.Exporters
             }
         }
 
-        public class ExTex : IDefinitionConsumer<Texture2D>
+        public class ExTex : IExportProvider<Texture2D>
         {
-            public Texture2D Consume(EntityDefinition entityDefinition)
+            public Texture2D Provide(EntityDefinition entityDefinition)
             {
                 if (entityDefinition is ExhibitTemplate ext)
                 {
@@ -59,9 +62,9 @@ namespace ExportModImgs.Exporters
         }
 
 
-        public class SeTex : IDefinitionConsumer<Texture2D>
+        public class SeTex : IExportProvider<Texture2D>
         {
-            public Texture2D Consume(EntityDefinition entityDefinition)
+            public Texture2D Provide(EntityDefinition entityDefinition)
             {
                 if (entityDefinition is StatusEffectTemplate set)
                 {
@@ -76,7 +79,46 @@ namespace ExportModImgs.Exporters
 
 
 
+    public class UpgradedImgExporter : Exporter<Texture2D>
+    {
 
+        public UpgradedImgExporter() : base()
+        {
+
+            rootFolder = Path.Join(rootFolder, "UpgradeImgs");
+            definitionConsumers = new Dictionary<Type, IExportProvider<Texture2D>>()
+            {
+                [typeof(CardTemplate)] = new DefinitionConsumer<Texture2D>(ed => {
+                    if (ed is CardTemplate ct)
+                    {
+                        return ct.LoadCardImages()?.upgrade;
+                    }
+                    return null;
+                })
+            };
+
+            exPathProvider = new ExportPathForUpgrade();
+
+            postProcess = new TexExport();
+        }
+
+
+        public class ExportPathForUpgrade : ExportPath
+        {
+            public override string ExportFilePrefix(EntityDefinition ed)
+            {
+                if (ed is CardTemplate ct)
+                {
+                    var upId = ct.MakeConfig().UpgradeImageId;
+                    if (string.IsNullOrEmpty(upId))
+                        return upId;
+                }
+
+                return base.ExportFilePrefix(ed);
+            }
+        }
+
+    }
 
 
 }

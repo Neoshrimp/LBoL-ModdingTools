@@ -34,10 +34,10 @@ namespace ExportModImgs
 
             harmony.PatchAll();
 
-            var texExporter = new TexExporter() {
-                addTimeStamp = true
-            };
-            texExporter.HookSelf();
+            new TexExporter().HookSelf();
+            new UpgradedImgExporter().HookSelf();
+            new ConfigExporter().HookSelf();
+            new LocExporter().HookSelf();
 
         }
 

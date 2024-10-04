@@ -32,6 +32,8 @@
     <!--Don't publicize virtual members which are meant to be overwritten in concrete entity logic types-->
     <ItemGroup>
         <Publicize Include="LBoL.Base;LBoL.ConfigData;LBoL.Core;LBoL.EntityLib;LBoL.Presentation;Untitled.ConfigDataBuilder.Base" IncludeCompilerGeneratedMembers="false" IncludeVirtualMembers="true" />
+        <Publicize Include="LBoL-Entity-Sideloader" IncludeCompilerGeneratedMembers="false" IncludeVirtualMembers="true" />
+
         <DoNotPublicize Include="LBoL.Core:LBoL.Core.Stage.get_DefaultEventPriority" />
         <DoNotPublicize Include="LBoL.Core:LBoL.Core.Stage.LocalizeProperty" />
         <DoNotPublicize Include="LBoL.Core:LBoL.Core.Stage.LocalizeListProperty" />
@@ -313,6 +315,9 @@
         </Reference>
         <Reference Include="UnityEngine.ImageConversionModule">
             <HintPath>$(GameFolder)\LBoL_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+        </Reference>
+        <Reference Include="YamlDotNet">
+            <HintPath>$(GameFolder)\LBoL_Data\Managed\YamlDotNet.dll</HintPath>
         </Reference>
     </ItemGroup>
 
