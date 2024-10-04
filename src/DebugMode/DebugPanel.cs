@@ -258,14 +258,25 @@ namespace DebugMode
                                         // finds localized name associated with config if it has one
                                         if (ConfigReflection.GetConfig2FactoryType().TryGetValue(configType, out Type factype))
                                         {
-                                            if (TypeFactoryReflection.AccessTypeLocalizers(factype)().TryGetValue((string)ConfigReflection.GetIdField(configType)?.GetValue(conf), out Dictionary<string, object> terms) && terms.TryGetValue("Name", out object name))
+                                            if (TypeFactoryReflection.AccessTypeLocalizers(factype)()
+                                            .TryGetValue((string)ConfigReflection.GetIdField(configType)?.GetValue(conf), out Dictionary<string, object> terms) 
+                                            && terms.TryGetValue("Name", out object name))
                                             {
                                                 localizedName = name?.ToString();
                                             }
 
                                         }
 
-                                        string wrappedText = Regex.Replace(conf.ToString(), "(.{1," + maxLineLength + @"})(\s+|$)", "$1" + System.Environment.NewLine);
+                                        string wrappedText = "";
+                                        try
+                                        {
+                                            wrappedText = Regex.Replace(conf.ToString(), "(.{1," + maxLineLength + @"})(\s+|$)", "$1" + System.Environment.NewLine);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.LogError($"{ConfigReflection.GetIdField(configType).GetValue(conf)}: \n{ex}");
+                                        }
+
 
                                         if (!string.IsNullOrEmpty(localizedName))
                                             streamWriter.WriteLine($"{localizedName}: ");
