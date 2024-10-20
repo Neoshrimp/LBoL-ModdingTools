@@ -21,7 +21,7 @@ namespace SideloaderTemplate
         internal static BepInEx.Logging.ManualLogSource log;
 
         internal static IResourceSource embeddedSource = new EmbeddedSource(Assembly.GetExecutingAssembly());
-        internal static DirectorySource directorySource = new DirectorySource(SideloaderTemplate.PInfo.GUID, "resources");
+        internal static DirectorySource directorySource = new DirectorySource(SideloaderTemplate.PInfo.GUID, "");
 
         internal static BatchLocalization cardBatchLoc = new BatchLocalization(directorySource, typeof(CardTemplate), "cards");
 

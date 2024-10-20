@@ -1,0 +1,1 @@
+ No matter the folder structure, all directory resourceswill end up in the same directory with dll. Make sure there are no clashing file names, i.e.,icon.png.
