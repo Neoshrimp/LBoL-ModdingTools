@@ -1,0 +1,19 @@
+{
+  "Title": "",
+  "Description": "",
+  "Brief": "",
+  "Changelog": [
+    "v1.0.0: \nInitial Release."
+  ],
+  "Version": "1.0.0",
+  "Author": "",
+  "Tags": [
+    "API",
+    "Generic"
+  ],
+  "PublishedFileId": 0,
+  "AuthorId": 0,
+  "GUID": "",
+  "Dependencies": [ "BepInEx-BepInExPack-5.4.2100", "neo.lbol.frameworks.entitySideloader" ],
+  "LastUpdateTime": 0
+}
