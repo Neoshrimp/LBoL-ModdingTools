@@ -5,7 +5,7 @@ Modding tools for Lost Branch of Legend
 
 #### [Sideloader template](https://github.com/Neoshrimp/LBoL-ModdingTools/tree/master/src/SideloaderTemplate)
 
-#### [DebugMode](https://github.com/Neoshrimp/LBoL-ModdingTools/blob/master/src/DebugMode/DebugMode.dll)
+#### [DebugMode](https://github.com/Neoshrimp/LBoL-ModdingTools/blob/master/src/DebugMode)
 
 ### Alpha branch is available with code `THRDBG20220728`
 It offers most up to date debug menus.
