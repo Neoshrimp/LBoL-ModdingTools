@@ -18,7 +18,7 @@ namespace DebugMode
             }
             UiManager.LeaveGameRun();
             GameMaster.Instance.CurrentGameRun = null;
-            LBoL.Presentation.Environment.Instance.ClearEnvironment();
+            LBoL.Presentation.Environments.Environment.Instance.ClearEnvironment();
             GameDirector.ClearAll();
             GameMaster.UnloadGameRunUi();
             GC.Collect();

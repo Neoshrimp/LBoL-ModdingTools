@@ -120,7 +120,7 @@ namespace DebugMode.AlphaDebug
         [UsedImplicitly]
         public static void AppearAll()
         {
-            GameDirector.RevealAll();
+            GameDirector.RevealAll(true);
         }
 
         [RuntimeCommand("opening", "Test opening comic.")]
@@ -360,7 +360,7 @@ namespace DebugMode.AlphaDebug
         {
             if (n > 0)
             {
-                DebugCommands.Battle.RequestDebugAction(new CreateDollSlotAction(n), "Debug: DollSlot");
+                DebugCommands.Battle.RequestDebugAction(new AddDollSlotAction(n), "Debug: DollSlot");
                 return;
             }
             if (n < 0)
@@ -373,7 +373,7 @@ namespace DebugMode.AlphaDebug
         [UsedImplicitly]
         public static void CreateDoll(string id)
         {
-            DebugCommands.Battle.RequestDebugAction(new CreateDollAction(LBoL.Core.Library.CreateDoll(id)), "Debug: Doll");
+            DebugCommands.Battle.RequestDebugAction(new AddDollAction(LBoL.Core.Library.CreateDoll(id)), "Debug: Doll");
         }
 
         [RuntimeCommand("dollactive", "")]
